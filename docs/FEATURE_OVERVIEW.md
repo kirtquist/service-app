@@ -9,7 +9,8 @@ Technical snapshot of what exists in the repo today and what comes next. Product
   - Capture technician narration (speech-to-text upstream, not bundled here yet).
   - Parse into structured jobs: customer, labor time, billable SKUs / line items.
   - Price lookups against internal catalogs loaded from eventual database tables.
-  - **Web UI** for invoice list/detail, edit line items, and approve at home (Phase 1 in `VISION.md`).
+  - **Web UI** for invoice list/detail, edit line items, and approve at home (Phase 1b in `VISION.md`).
+  - **WhatsApp bot** for early demos: send a job note → get parsed JSON (Phase 1a in `VISION.md`).
 
 ## What works today
 
@@ -23,11 +24,13 @@ Technical snapshot of what exists in the repo today and what comes next. Product
 
 | Area | Current state | Next steps |
 |------|----------------|------------|
-| LLM ingestion | [`parse_service_call`](../src/service_app/ingestion.py) via OpenRouter | Pydantic validation; create **draft invoices** from parsed JSON |
+| LLM ingestion | [`parse_service_call`](../src/service_app/ingestion.py) via OpenRouter | Pydantic validation; FastAPI `/parse`; WhatsApp webhook |
 | Catalog | Dict in [`catalog.py`](../src/service_app/catalog.py) | DB tables (`parts`, regional price lists); seed plumber SKUs |
-| Secrets | Env + `.env` via [`SecretsProvider`](../src/service_app/secrets.py) | Production vault; see [`API_KEYS.md`](API_KEYS.md) |
-| Database | SQLAlchemy `Base` + [`session`](../src/service_app/db/session.py) stubs | Models: `customer`, `job`, `invoice`, `invoice_line`; Alembic migrations |
-| Web UI | Not started | Invoice CRUD + approval workflow (see `VISION.md` Phase 1) |
+| Secrets | Env + `.env` via [`SecretsProvider`](../src/service_app/secrets.py) | GCP Secret Manager on Cloud Run; see [`API_KEYS.md`](API_KEYS.md) |
+| Database | SQLAlchemy `Base` + [`session`](../src/service_app/db/session.py) stubs | Phase 1b: `customer`, `job`, `invoice`, `invoice_line`; Alembic |
+| API / hosting | Not started | FastAPI + Dockerfile → **GCP Cloud Run** (Phase 1a) |
+| WhatsApp | Not started | Text in → JSON out demo for SMEs (Phase 1a) |
+| Web UI | Not started | Invoice CRUD + approval (Phase 1b) |
 | Bookkeeping | Not started | CSV export, then QuickBooks Online API (see `VISION.md`) |
 
 ## OpenRouter specifics
@@ -38,7 +41,11 @@ Environment variables: `OPENROUTER_API_KEY` (required for `--parse`), optional `
 
 ## CLI vs product
 
-[`service_app/cli.py`](../src/service_app/cli.py) (`service-app-demo`) is a **developer demo**, not the customer-facing app. End users will use a browser to review and approve invoices.
+[`service_app/cli.py`](../src/service_app/cli.py) (`service-app-demo`) is a **developer demo**. End users will demo via **WhatsApp** (Phase 1a) and approve invoices in a **browser** (Phase 1b).
+
+## Next steps
+
+See **[`VISION.md` — Phase 1a checklist](VISION.md#phase-1a--checklist-get-started)** for the ordered build list (API → Cloud Run → WhatsApp → SME feedback).
 
 ## Naming / roadmap
 
