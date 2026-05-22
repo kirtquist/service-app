@@ -6,7 +6,7 @@ import os
 def run() -> None:
     import uvicorn
 
-    port = int(os.environ.get("PORT", "8080"))
+    port = int(os.environ.get("PORT", "8090"))
     uvicorn.run(
         "service_app.api.app:app",
         host="0.0.0.0",

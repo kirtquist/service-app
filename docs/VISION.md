@@ -222,18 +222,19 @@ Use this as the working task list until the WhatsApp demo is live.
 
 ### Week 1 — API + validation
 
-- [ ] Add `ParsedServiceCall` Pydantic model (`customer_name`, `parts[]`, `labor_hours`).
-- [ ] Validate `parse_service_call()` output; clear errors when model returns bad JSON.
-- [ ] Add `service_app/api/` with FastAPI app wrapping existing ingestion + catalog.
-- [ ] `POST /parse` — accept `{ "transcript": "..." }`, return validated JSON (+ optional price hints).
-- [ ] Unit tests for validation (mock LLM or fixture JSON).
+- [x] Add `ParsedServiceCall` Pydantic model (`customer_name`, `parts[]`, `labor_hours`).
+- [x] Validate `parse_service_call()` output; clear errors when model returns bad JSON.
+- [x] Add `service_app/api/` with FastAPI app wrapping existing ingestion + catalog.
+- [x] `POST /parse` — accept `{ "transcript": "..." }`, return validated JSON (+ optional price hints).
+- [x] Unit tests for validation (mock LLM or fixture JSON).
 
 ### Week 2 — Cloud Run
 
-- [ ] Add `Dockerfile` (slim Python image, `uvicorn` entrypoint).
-- [ ] GCP project + Artifact Registry (or Container Registry).
-- [ ] Secret Manager: `OPENROUTER_API_KEY`, later WhatsApp verify token / API keys.
-- [ ] Deploy to **Cloud Run** (min instances 0, allow unauthenticated for webhook only if needed — lock down `/parse` or use API key).
+- [x] Add `Dockerfile` (slim Python image, `uvicorn` entrypoint).
+- [ ] GCP project + Artifact Registry (project **`kgs-service-app`** — run one-time setup in [`GCP_DEPLOY.md`](GCP_DEPLOY.md)).
+- [ ] Secret Manager: `openrouter-api-key` → `OPENROUTER_API_KEY` on Cloud Run.
+- [x] GitHub Actions deploy workflow (push to `dev` / `main` after tests).
+- [ ] Add **`GCP_SA_KEY`** GitHub secret; merge to `dev` and confirm deploy.
 - [ ] Confirm `GET /health` and `POST /parse` from curl against Cloud Run URL.
 
 ### Week 3 — WhatsApp
@@ -283,3 +284,4 @@ Use this as the working task list until the WhatsApp demo is live.
 |------|--------|
 | 2026-05-22 | Initial vision doc — web approval workflow, QuickBooks direction, SME validation plan |
 | 2026-05-22 | Demo strategy — WhatsApp + Cloud Run in Phase 1a; Phase 1b web approval; Phase 1a checklist |
+| 2026-05-22 | Dockerfile, GitHub Actions deploy to Cloud Run (`kgs-service-app`); [`GCP_DEPLOY.md`](GCP_DEPLOY.md) |

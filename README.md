@@ -50,11 +50,13 @@ HTTP API (Phase 1a — after `pip install -e .`):
 ```bash
 service-app-api
 # In another terminal:
-curl -s http://127.0.0.1:8080/health
-curl -s -X POST http://127.0.0.1:8080/parse \
+curl -s http://127.0.0.1:8090/health
+curl -s -X POST http://127.0.0.1:8090/parse \
   -H 'Content-Type: application/json' \
   -d '{"transcript": "Baker residence, two GFCIs, 1.5 hours"}'
 ```
+
+**Cloud Run** (project `kgs-service-app`): see [`docs/GCP_DEPLOY.md`](docs/GCP_DEPLOY.md). Deploys via GitHub Actions on push to `dev` / `main`.
 
 From Python (`pip install -e .` so `service_app` is importable):
 
@@ -81,6 +83,7 @@ PYTHONPATH=src python app.py   # works without install; prefer pip install -e .
 ## Docs
 
 - [`docs/VISION.md`](docs/VISION.md) — product vision, workflows, QuickBooks direction, roadmap.
+- [`docs/GCP_DEPLOY.md`](docs/GCP_DEPLOY.md) — Cloud Run deploy (`kgs-service-app`), GitHub Actions, Secret Manager.
 - [`docs/API_KEYS.md`](docs/API_KEYS.md) — how keys are supplied now and where to plug a vault later.
 - [`docs/FEATURE_OVERVIEW.md`](docs/FEATURE_OVERVIEW.md) — product/technical roadmap notes.
 

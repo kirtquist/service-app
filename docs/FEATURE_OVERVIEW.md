@@ -29,7 +29,7 @@ Technical snapshot of what exists in the repo today and what comes next. Product
 | Catalog | Dict in [`catalog.py`](../src/service_app/catalog.py) | DB tables (`parts`, regional price lists); seed plumber SKUs |
 | Secrets | Env + `.env` via [`SecretsProvider`](../src/service_app/secrets.py) | GCP Secret Manager on Cloud Run; see [`API_KEYS.md`](API_KEYS.md) |
 | Database | SQLAlchemy `Base` + [`session`](../src/service_app/db/session.py) stubs | Phase 1b: `customer`, `job`, `invoice`, `invoice_line`; Alembic |
-| API / hosting | FastAPI [`/health`](../src/service_app/api/app.py), [`/parse`](../src/service_app/api/app.py) — `service-app-api` | Dockerfile → **GCP Cloud Run** |
+| API / hosting | FastAPI [`/health`](../src/service_app/api/app.py), [`/parse`](../src/service_app/api/app.py) — `service-app-api`; Dockerfile + GH Actions → Cloud Run (`kgs-service-app`) — see [`GCP_DEPLOY.md`](GCP_DEPLOY.md) |
 | WhatsApp | Not started | Text in → JSON out demo for SMEs (Phase 1a) |
 | Web UI | Not started | Invoice CRUD + approval (Phase 1b) |
 | Bookkeeping | Not started | CSV export, then QuickBooks Online API (see `VISION.md`) |
