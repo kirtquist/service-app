@@ -1,0 +1,91 @@
+# Pulumi infrastructure for GCP (`kgs-service-app`).
+
+Provisions **long-lived** resources with [Pulumi](https://www.pulumi.com/) (Python). **Cloud Run image deploys** remain in GitHub Actions (`.github/workflows/deploy-cloud-run.yml`) on each push to `dev` / `main`.
+
+## What Pulumi creates
+
+| Resource | Name / ID |
+|----------|-----------|
+| Enabled APIs | Run, Artifact Registry, Secret Manager, IAM, Cloud Build |
+| Artifact Registry | `service-app` (Docker, `us-central1`) |
+| Secret Manager | `openrouter-api-key` |
+| Runtime SA | `service-app-api@kgs-service-app.iam.gserviceaccount.com` |
+| GitHub deploy SA | `github-deploy@kgs-service-app.iam.gserviceaccount.com` |
+| IAM | Runtime SA → read secret; GitHub SA → deploy + push images |
+
+## Prerequisites
+
+- [Pulumi CLI](https://www.pulumi.com/docs/install/)
+- [gcloud CLI](https://cloud.google.com/sdk/docs/install) authenticated with permission to manage `kgs-service-app`
+- Python 3.10+
+
+```bash
+gcloud auth login
+gcloud auth application-default login
+gcloud config set project kgs-service-app
+pulumi login   # pulumi.com free account, or configure GCS self-hosted backend
+```
+
+## First-time setup
+
+From repo root:
+
+```bash
+cd infra
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+pulumi stack init prod   # skip if stack already exists
+pulumi config set gcp:project kgs-service-app
+pulumi config set gcp:region us-central1
+pulumi config set --secret openrouterApiKey "sk-or-v1-YOUR_KEY"
+
+pulumi preview
+pulumi up
+```
+
+Stack config for `prod` is checked in as `Pulumi.prod.yaml` (project + region only — **no secrets in git**).
+
+## Wire GitHub Actions
+
+Export the deploy service account key (shown once; treat as sensitive):
+
+```bash
+pulumi stack output github_deploy_sa_key_json --show-secrets
+```
+
+Copy the full JSON into GitHub → **Settings → Secrets → Actions** → **`GCP_SA_KEY`**.
+
+Then merge to **`dev`** or **`main`** (or run the deploy workflow manually). GitHub Actions builds the Docker image, pushes to Artifact Registry, and deploys Cloud Run service **`service-app-api`**.
+
+## Useful outputs
+
+```bash
+pulumi stack output project_id
+pulumi stack output artifact_registry_repository
+pulumi stack output runtime_service_account_email
+```
+
+## Updating the OpenRouter key
+
+```bash
+pulumi config set --secret openrouterApiKey "NEW_KEY"
+pulumi up   # creates a new secret version
+```
+
+## If resources already exist
+
+If you ran manual `gcloud` steps from [`GCP_DEPLOY.md`](../docs/GCP_DEPLOY.md) first, `pulumi up` may fail with “already exists”. Options:
+
+1. **Fresh project** — delete conflicting resources in GCP console, then `pulumi up`.
+2. **Import** — `pulumi import` each existing resource (see Pulumi GCP docs).
+3. **Skip Pulumi** — continue with manual setup in `GCP_DEPLOY.md`.
+
+## Destroy (careful)
+
+```bash
+pulumi destroy
+```
+
+Does not remove Cloud Run revisions created by GitHub Actions (manage those in GCP console or `gcloud run services delete`).

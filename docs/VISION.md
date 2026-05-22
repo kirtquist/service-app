@@ -231,7 +231,7 @@ Use this as the working task list until the WhatsApp demo is live.
 ### Week 2 — Cloud Run
 
 - [x] Add `Dockerfile` (slim Python image, `uvicorn` entrypoint).
-- [ ] GCP project + Artifact Registry (project **`kgs-service-app`** — run one-time setup in [`GCP_DEPLOY.md`](GCP_DEPLOY.md)).
+- [ ] GCP project + Artifact Registry — run **`pulumi up`** in [`infra/`](../infra/README.md) (project **`kgs-service-app`**) or manual steps in [`GCP_DEPLOY.md`](GCP_DEPLOY.md)
 - [ ] Secret Manager: `openrouter-api-key` → `OPENROUTER_API_KEY` on Cloud Run.
 - [x] GitHub Actions deploy workflow (push to `dev` / `main` after tests).
 - [ ] Add **`GCP_SA_KEY`** GitHub secret; merge to `dev` and confirm deploy.
@@ -285,3 +285,4 @@ Use this as the working task list until the WhatsApp demo is live.
 | 2026-05-22 | Initial vision doc — web approval workflow, QuickBooks direction, SME validation plan |
 | 2026-05-22 | Demo strategy — WhatsApp + Cloud Run in Phase 1a; Phase 1b web approval; Phase 1a checklist |
 | 2026-05-22 | Dockerfile, GitHub Actions deploy to Cloud Run (`kgs-service-app`); [`GCP_DEPLOY.md`](GCP_DEPLOY.md) |
+| 2026-05-22 | Pulumi stack in `infra/` for GCP foundation (APIs, AR, secrets, IAM) |
