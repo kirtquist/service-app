@@ -7,7 +7,8 @@ MVP scaffolding for a **field-service** style app aimed first at trades such as 
 ## Features (current)
 
 - **OpenRouter**: Chat Completions via the OpenAI Python SDK pointing at OpenRouter (`OPENROUTER_API_KEY`).
-- **Structured parsing**: Rough technician transcripts → JSON fields (customer, parts, labor hours).
+- **Structured parsing**: Rough technician transcripts → validated JSON (customer, parts, labor hours) via Pydantic.
+- **HTTP API**: FastAPI `GET /health` and `POST /parse` (`service-app-api`) for Cloud Run and WhatsApp webhook.
 - **Secrets hook**: [`EnvSecretsProvider`](src/service_app/secrets.py) reads from environment; swap for Vault/KMS in production.
 - **Database stub**: SQLAlchemy `Base` + session factory wired for when you add `DATABASE_URL`.
 
@@ -38,10 +39,21 @@ Print sample catalog:
 service-app-demo
 ```
 
-Parse a technician log line via OpenRouter (pass a quoted **transcript** — a plain-English field note):
+Call OpenRouter (CLI):
 
 ```bash
 service-app-demo --parse 'Showed up at Baker residence, swapped two GFCIs, 1.5 hours on site'
+```
+
+HTTP API (Phase 1a — after `pip install -e .`):
+
+```bash
+service-app-api
+# In another terminal:
+curl -s http://127.0.0.1:8080/health
+curl -s -X POST http://127.0.0.1:8080/parse \
+  -H 'Content-Type: application/json' \
+  -d '{"transcript": "Baker residence, two GFCIs, 1.5 hours"}'
 ```
 
 From Python (`pip install -e .` so `service_app` is importable):

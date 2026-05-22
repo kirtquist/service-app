@@ -18,17 +18,18 @@ Technical snapshot of what exists in the repo today and what comes next. Product
 |------------|----------------|
 | Sample price catalog | `service-app-demo` |
 | LLM parse of a field log | `service-app-demo --parse '...'` (requires `OPENROUTER_API_KEY` in `.env`) |
+| HTTP parse API | `service-app-api` then `POST /parse` with `{"transcript":"..."}` |
 | Programmatic use | `from service_app.ingestion import parse_service_call` after `pip install -e .` |
 
 ## Technical building blocks
 
 | Area | Current state | Next steps |
 |------|----------------|------------|
-| LLM ingestion | [`parse_service_call`](../src/service_app/ingestion.py) via OpenRouter | Pydantic validation; FastAPI `/parse`; WhatsApp webhook |
+| LLM ingestion | [`parse_service_call`](../src/service_app/ingestion.py) + [`schemas`](../src/service_app/schemas.py) | WhatsApp webhook on [`api/app.py`](../src/service_app/api/app.py) |
 | Catalog | Dict in [`catalog.py`](../src/service_app/catalog.py) | DB tables (`parts`, regional price lists); seed plumber SKUs |
 | Secrets | Env + `.env` via [`SecretsProvider`](../src/service_app/secrets.py) | GCP Secret Manager on Cloud Run; see [`API_KEYS.md`](API_KEYS.md) |
 | Database | SQLAlchemy `Base` + [`session`](../src/service_app/db/session.py) stubs | Phase 1b: `customer`, `job`, `invoice`, `invoice_line`; Alembic |
-| API / hosting | Not started | FastAPI + Dockerfile → **GCP Cloud Run** (Phase 1a) |
+| API / hosting | FastAPI [`/health`](../src/service_app/api/app.py), [`/parse`](../src/service_app/api/app.py) — `service-app-api` | Dockerfile → **GCP Cloud Run** |
 | WhatsApp | Not started | Text in → JSON out demo for SMEs (Phase 1a) |
 | Web UI | Not started | Invoice CRUD + approval (Phase 1b) |
 | Bookkeeping | Not started | CSV export, then QuickBooks Online API (see `VISION.md`) |
