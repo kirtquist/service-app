@@ -2,6 +2,8 @@
 
 MVP scaffolding for a **field-service** style app aimed first at trades such as plumbing. The bundled **price catalog mock data skews electrician** until you swap SKUs toward pipes, fittings, and fixtures.
 
+**Product direction:** web-based invoice review and approval at home, with future QuickBooks sync — see [`docs/VISION.md`](docs/VISION.md). The CLI is for development and testing only.
+
 ## Features (current)
 
 - **OpenRouter**: Chat Completions via the OpenAI Python SDK pointing at OpenRouter (`OPENROUTER_API_KEY`).
@@ -10,6 +12,8 @@ MVP scaffolding for a **field-service** style app aimed first at trades such as 
 - **Database stub**: SQLAlchemy `Base` + session factory wired for when you add `DATABASE_URL`.
 
 ## Setup
+
+Requires **Python 3.10+** (3.11 recommended). Recreate `.venv` on each machine — do not copy virtualenv folders between systems.
 
 ```bash
 cd service-app
@@ -34,7 +38,7 @@ Print sample catalog:
 service-app-demo
 ```
 
-Call OpenRouter:
+Parse a technician log line via OpenRouter (pass a quoted **transcript** — a plain-English field note):
 
 ```bash
 service-app-demo --parse 'Showed up at Baker residence, swapped two GFCIs, 1.5 hours on site'
@@ -58,12 +62,13 @@ PYTHONPATH=src python app.py   # works without install; prefer pip install -e .
 
 ## GitHub repository
 
-Instructions to create **`https://github.com/kirtquist/service-app`** are in **[`docs/GITHUB_SETUP.md`](docs/GITHUB_SETUP.md)** (CLI `gh` was not installed in the automation environment).
+**https://github.com/kirtquist/service-app** — clone, branch, and push notes in [`docs/GITHUB_SETUP.md`](docs/GITHUB_SETUP.md).
 
 ---
 
 ## Docs
 
+- [`docs/VISION.md`](docs/VISION.md) — product vision, workflows, QuickBooks direction, roadmap.
 - [`docs/API_KEYS.md`](docs/API_KEYS.md) — how keys are supplied now and where to plug a vault later.
 - [`docs/FEATURE_OVERVIEW.md`](docs/FEATURE_OVERVIEW.md) — product/technical roadmap notes.
 

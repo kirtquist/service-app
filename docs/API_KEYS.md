@@ -1,5 +1,7 @@
 # API keys — OpenRouter and beyond
 
+Service credentials (OpenRouter, future QuickBooks OAuth client secrets) belong in environment or a vault — **not** in the application database. See also [`VISION.md`](VISION.md) for product context.
+
 ## Local development
 
 1. Copy [`.env.example`](../.env.example) to `.env` at the project root (gitignored).
