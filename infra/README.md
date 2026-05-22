@@ -6,7 +6,7 @@ Provisions **long-lived** resources with [Pulumi](https://www.pulumi.com/) (Pyth
 
 | Resource | Name / ID |
 |----------|-----------|
-| Enabled APIs | Run, Artifact Registry, Secret Manager, IAM, Cloud Build |
+| Enabled APIs | Run, Artifact Registry, Secret Manager, IAM, Cloud Build, **Compute** (provider region lookup) |
 | Artifact Registry | `service-app` (Docker, `us-central1`) |
 | Secret Manager | `openrouter-api-key` |
 | Runtime SA | `service-app-api@kgs-service-app.iam.gserviceaccount.com` |
@@ -28,6 +28,8 @@ pulumi login   # pulumi.com free account, or configure GCS self-hosted backend
 
 ## First-time setup
 
+`Pulumi.prod.yaml` in git is **stack config only** — it does not create the stack. You must **`init`** once before **`select`**.
+
 From repo root:
 
 ```bash
@@ -36,14 +38,20 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-pulumi stack init prod   # skip if stack already exists
-pulumi config set gcp:project kgs-service-app
-pulumi config set gcp:region us-central1
+# First time only — creates the prod stack (registers with pulumi.com backend)
+pulumi stack init prod
+
+# Later sessions
+# pulumi stack select prod
+
 pulumi config set --secret openrouterApiKey "sk-or-v1-YOUR_KEY"
+# gcp:project and gcp:region are already in Pulumi.prod.yaml
 
 pulumi preview
 pulumi up
 ```
+
+If `pulumi stack init prod` says the stack already exists, use `pulumi stack select prod` instead.
 
 Stack config for `prod` is checked in as `Pulumi.prod.yaml` (project + region only — **no secrets in git**).
 
@@ -74,7 +82,13 @@ pulumi config set --secret openrouterApiKey "NEW_KEY"
 pulumi up   # creates a new secret version
 ```
 
-## If resources already exist
+## Troubleshooting
+
+| Error | Fix |
+|-------|-----|
+| `Compute Engine API` warning on preview | Fixed in stack — `compute.googleapis.com` is enabled by Pulumi; wait a few minutes after first enable |
+| `SecretIAMMember` AttributeError | Use pulumi-gcp 8+ — resource is `SecretIamMember` (fixed in repo) |
+| Pulumi “already exists” (GCP) | Import resources or delete duplicates — see below |
 
 If you ran manual `gcloud` steps from [`GCP_DEPLOY.md`](../docs/GCP_DEPLOY.md) first, `pulumi up` may fail with “already exists”. Options:
 

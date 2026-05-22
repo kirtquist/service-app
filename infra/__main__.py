@@ -23,6 +23,8 @@ REQUIRED_APIS = [
     "secretmanager.googleapis.com",
     "iam.googleapis.com",
     "cloudbuild.googleapis.com",
+    # Pulumi GCP provider lists regions via Compute API (warning if disabled).
+    "compute.googleapis.com",
 ]
 
 enabled_apis: list[gcp.projects.Service] = []
@@ -69,7 +71,7 @@ runtime_sa = gcp.serviceaccount.Account(
     project=project,
 )
 
-gcp.secretmanager.SecretIAMMember(
+gcp.secretmanager.SecretIamMember(
     "runtime-openrouter-secret-accessor",
     project=project,
     secret_id=openrouter_secret.secret_id,
