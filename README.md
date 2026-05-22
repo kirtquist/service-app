@@ -56,6 +56,12 @@ The root [`app.py`](app.py) re-exports `parse_service_call`, `lookup_item_price`
 PYTHONPATH=src python app.py   # works without install; prefer pip install -e .
 ```
 
+## GitHub repository
+
+Instructions to create **`https://github.com/kirtquist/service-app`** are in **[`docs/GITHUB_SETUP.md`](docs/GITHUB_SETUP.md)** (CLI `gh` was not installed in the automation environment).
+
+---
+
 ## Docs
 
 - [`docs/API_KEYS.md`](docs/API_KEYS.md) — how keys are supplied now and where to plug a vault later.
