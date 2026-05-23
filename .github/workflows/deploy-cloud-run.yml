@@ -43,6 +43,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify GCP_SA_KEY secret is configured
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          if [ -z "$GCP_SA_KEY" ]; then
+            echo "::error::GitHub secret GCP_SA_KEY is missing or empty."
+            echo "After pulumi up, run: pulumi stack output github_deploy_sa_key_json --show-secrets"
+            echo "Add the full JSON at repo Settings → Secrets and variables → Actions → GCP_SA_KEY"
+            exit 1
+          fi
+
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}

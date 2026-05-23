@@ -57,15 +57,23 @@ Stack config for `prod` is checked in as `Pulumi.prod.yaml` (project + region on
 
 ## Wire GitHub Actions
 
-Export the deploy service account key (shown once; treat as sensitive):
+**Required before deploy will work:** add GitHub Actions secret **`GCP_SA_KEY`**.
+
+Export the deploy service account key after `pulumi up` (treat as sensitive):
 
 ```bash
 pulumi stack output github_deploy_sa_key_json --show-secrets
 ```
 
-Copy the full JSON into GitHub → **Settings → Secrets → Actions** → **`GCP_SA_KEY`**.
+Copy the **entire JSON object** (starts with `{`, ends with `}`) into:
 
-Then merge to **`dev`** or **`main`** (or run the deploy workflow manually). GitHub Actions builds the Docker image, pushes to Artifact Registry, and deploys Cloud Run service **`service-app-api`**.
+**GitHub → kirtquist/service-app → Settings → Secrets and variables → Actions → New repository secret**
+
+| Name | Value |
+|------|--------|
+| `GCP_SA_KEY` | Full JSON from Pulumi output above |
+
+Then merge to **`dev`** or **`main`**, or re-run **Deploy API to Cloud Run** from the Actions tab.
 
 ## Useful outputs
 
