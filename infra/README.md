@@ -30,7 +30,7 @@ pulumi login   # pulumi.com free account, or configure GCS self-hosted backend
 
 `Pulumi.prod.yaml` in git is **stack config only** — it does not create the stack. You must **`init`** once before **`select`**.
 
-From repo root:
+From repo root :
 
 ```bash
 cd infra
