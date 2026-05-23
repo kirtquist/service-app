@@ -84,6 +84,7 @@ PYTHONPATH=src python app.py   # works without install; prefer pip install -e .
 
 - [`docs/VISION.md`](docs/VISION.md) — product vision, workflows, QuickBooks direction, roadmap.
 - [`docs/GCP_DEPLOY.md`](docs/GCP_DEPLOY.md) — Cloud Run deploy (`kgs-service-app`), GitHub Actions, Secret Manager.
+- [`docs/WHATSAPP_SETUP.md`](docs/WHATSAPP_SETUP.md) — Twilio sandbox and Meta Cloud API webhook setup.
 - [`infra/README.md`](infra/README.md) — Pulumi stack for GCP foundation (recommended one-time setup).
 - [`docs/API_KEYS.md`](docs/API_KEYS.md) — how keys are supplied now and where to plug a vault later.
 - [`docs/FEATURE_OVERVIEW.md`](docs/FEATURE_OVERVIEW.md) — product/technical roadmap notes.

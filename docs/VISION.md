@@ -239,12 +239,10 @@ Use this as the working task list until the WhatsApp demo is live.
 
 ### Week 3 — WhatsApp
 
-- [ ] Choose provider:
-  - **Twilio WhatsApp Sandbox** — fastest for first SME demo (join sandbox, send to shared number).
-  - **Meta WhatsApp Cloud API** — better long-term; needs Meta Business app + verified webhook URL (Cloud Run URL works).
-- [ ] Implement webhook: verify challenge (Meta) or Twilio signature.
-- [ ] On text message: call parse → reply with human-readable summary + JSON block.
-- [ ] Test with yourself, then one SME contact via your supply friend.
+- [x] Choose provider — **Twilio sandbox** (`/webhook/whatsapp/twilio`) and **Meta Cloud API** (`/webhook/whatsapp`) implemented; see [`WHATSAPP_SETUP.md`](WHATSAPP_SETUP.md)
+- [x] Implement webhook: Meta verify challenge; Twilio signature validation (optional)
+- [x] On text message: parse → human-readable summary + JSON block
+- [ ] Configure provider credentials on Cloud Run; test with yourself, then SME contact
 
 ### Week 4 — SME feedback
 
