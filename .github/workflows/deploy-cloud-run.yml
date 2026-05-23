@@ -78,14 +78,12 @@ jobs:
           service: ${{ env.SERVICE }}
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPOSITORY }}/api:${{ github.sha }}
-          env_vars: |-
-            OPENROUTER_HTTP_REFERER=https://github.com/kirtquist/service-app
-            OPENROUTER_X_TITLE=Service App MVP
           secrets: |-
             OPENROUTER_API_KEY=openrouter-api-key:latest
           flags: >-
             --allow-unauthenticated
             --service-account=${{ env.RUNTIME_SA }}
+            --set-env-vars=OPENROUTER_HTTP_REFERER=https://github.com/kirtquist/service-app,OPENROUTER_X_TITLE='Service App MVP'
             --memory=512Mi
             --cpu=1
             --min-instances=0
