@@ -13,7 +13,7 @@ on:
 
 env:
   PROJECT_ID: kgs-service-app
-  # Must match Pulumi stack config: infra/Pulumi.prod.yaml → gcp:region
+  # Must match Pulumi stack config: infra/Pulumi.prod.yaml → gcp:region, default us-west1
   REGION: us-west1
   SERVICE: service-app-api
   AR_REPOSITORY: service-app
