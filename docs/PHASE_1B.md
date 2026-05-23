@@ -24,16 +24,21 @@ WhatsApp messages automatically create **`pending_review`** invoices and include
 
 ## Auth (single shop)
 
-HTTP Basic auth — set on Cloud Run:
+HTTP Basic auth protects `/app/*`. Credentials are managed in **Pulumi** → GCP Secret Manager:
 
 ```bash
-gcloud run services update service-app-api \
-  --region us-west1 \
-  --project kgs-service-app \
-  --set-env-vars="WEB_AUTH_USERNAME=admin,WEB_AUTH_PASSWORD=YOUR_STRONG_PASSWORD"
+cd infra
+pulumi stack select prod
+pulumi config set --secret webAuthPassword "YOUR_STRONG_PASSWORD"
+pulumi up
 ```
 
-If `WEB_AUTH_PASSWORD` is unset, the web UI is **open** (local dev only).
+- **Username:** `pulumi config get webAuthUsername` (default `admin`) — synced to Cloud Run as `WEB_AUTH_USERNAME` via GitHub Actions deploy.
+- **Password:** Secret Manager `web-auth-password` → Cloud Run env `WEB_AUTH_PASSWORD`.
+
+If `webAuthPassword` is not set in Pulumi, the web UI remains open (dev only).
+
+After `pulumi up`, push to `dev`/`main` (or re-run the deploy workflow) so Cloud Run mounts the secret.
 
 ---
 

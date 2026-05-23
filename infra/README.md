@@ -8,10 +8,10 @@ Provisions **long-lived** resources with [Pulumi](https://www.pulumi.com/) (Pyth
 |----------|-----------|
 | Enabled APIs | Run, Artifact Registry, Secret Manager, IAM, Cloud Build, **Compute** (provider region lookup) |
 | Artifact Registry | `service-app` (Docker, region from `Pulumi.prod.yaml`, e.g. `us-west1`) |
-| Secret Manager | `openrouter-api-key` |
+| Secret Manager | `openrouter-api-key`, optional `web-auth-password` |
 | Runtime SA | `service-app-api@kgs-service-app.iam.gserviceaccount.com` |
 | GitHub deploy SA | `github-deploy@kgs-service-app.iam.gserviceaccount.com` |
-| IAM | Runtime SA → read secret; GitHub SA → deploy + push images |
+| IAM | Runtime SA → read secrets; GitHub SA → deploy + push images |
 
 ## Prerequisites
 
@@ -45,6 +45,9 @@ pulumi stack init prod
 # pulumi stack select prod
 
 pulumi config set --secret openrouterApiKey "sk-or-v1-YOUR_KEY"
+pulumi config set --secret webAuthPassword "YOUR_STRONG_WEB_PASSWORD"
+# Optional — default is admin (must match deploy workflow WEB_AUTH_USERNAME)
+pulumi config set webAuthUsername admin
 # gcp:project and gcp:region are already in Pulumi.prod.yaml
 
 pulumi preview
@@ -75,19 +78,32 @@ Copy the **entire JSON object** (starts with `{`, ends with `}`) into:
 
 Then merge to **`dev`** or **`main`**, or re-run **Deploy API to Cloud Run** from the Actions tab.
 
+## Updating secrets
+
+**OpenRouter key:**
+
+```bash
+pulumi config set --secret openrouterApiKey "NEW_KEY"
+pulumi up   # creates a new secret version
+```
+
+**Web UI password** (HTTP Basic auth for `/app/*`):
+
+```bash
+pulumi config set --secret webAuthPassword "NEW_PASSWORD"
+pulumi up
+```
+
+Username is plain config (`webAuthUsername`, default `admin`). After changing it, update `WEB_AUTH_USERNAME` in `.github/workflows/deploy-cloud-run.yml` to match, then redeploy.
+
 ## Useful outputs
 
 ```bash
 pulumi stack output project_id
 pulumi stack output artifact_registry_repository
 pulumi stack output runtime_service_account_email
-```
-
-## Updating the OpenRouter key
-
-```bash
-pulumi config set --secret openrouterApiKey "NEW_KEY"
-pulumi up   # creates a new secret version
+pulumi stack output web_auth_username
+pulumi stack output web_auth_password_secret_id
 ```
 
 ## Troubleshooting

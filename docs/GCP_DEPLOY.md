@@ -14,7 +14,7 @@ GitHub Actions deploys on push to **`main`** or **`dev`** after tests pass.
 | **Pulumi** (`infra/`) | APIs, Artifact Registry, Secret Manager, IAM — [recommended setup](#option-a-pulumi-recommended) |
 | **Artifact Registry** | Docker images (`us-west1-docker.pkg.dev/kgs-service-app/service-app/api`) |
 | **Cloud Run** | Hosts FastAPI (`GET /health`, `POST /parse`) — deployed by GitHub Actions |
-| **Secret Manager** | `openrouter-api-key` → env `OPENROUTER_API_KEY` on Cloud Run |
+| **Secret Manager** | `openrouter-api-key`, `web-auth-password`, `twilio-auth-token` → Cloud Run env |
 | **GitHub Actions** | Build image, push, deploy (`.github/workflows/deploy-cloud-run.yml`) |
 
 Cloud Run injects **`PORT=8080`**. Local dev uses **8090** by default (`service-app-api`).
@@ -32,6 +32,7 @@ pip install -r requirements.txt
 
 pulumi stack select prod   # or: pulumi stack init prod
 pulumi config set --secret openrouterApiKey "sk-or-v1-YOUR_KEY"
+pulumi config set --secret webAuthPassword "YOUR_STRONG_WEB_PASSWORD"
 pulumi up
 ```
 

@@ -1,5 +1,6 @@
 config:
   gcp:project: kgs-service-app
   gcp:region: us-west1
+  service-app-infra:webAuthUsername: admin
   service-app-infra:openrouterApiKey:
     secure: AAABAPJP1mQujPQ6TyC/hXPnFBVVou2M43VTHCqW79KYytxNEyS44/fr0AOyAKTm3+MAT6P2MFBqu2KItODPWb8mWcMJujm8KItP/wbXKyTseQNuXITJ+DpE7b8PlBD4h1CGTkPkyUi4
