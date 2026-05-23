@@ -204,5 +204,5 @@ docker run --rm -p 8090:8090 \
 Logs:
 
 ```bash
-gcloud run services logs read service-app-api --region us-central1 --limit 50
+gcloud run services logs read service-app-api --region us-west1 --limit 50
 ```
