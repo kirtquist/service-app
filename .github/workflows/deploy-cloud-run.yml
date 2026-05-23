@@ -13,7 +13,7 @@ on:
 
 env:
   PROJECT_ID: kgs-service-app
-  REGION: us-central1
+  REGION: us-west1
   SERVICE: service-app-api
   AR_REPOSITORY: service-app
   RUNTIME_SA: service-app-api@kgs-service-app.iam.gserviceaccount.com

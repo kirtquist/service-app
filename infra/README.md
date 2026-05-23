@@ -7,7 +7,7 @@ Provisions **long-lived** resources with [Pulumi](https://www.pulumi.com/) (Pyth
 | Resource | Name / ID |
 |----------|-----------|
 | Enabled APIs | Run, Artifact Registry, Secret Manager, IAM, Cloud Build, **Compute** (provider region lookup) |
-| Artifact Registry | `service-app` (Docker, `us-central1`) |
+| Artifact Registry | `service-app` (Docker, region from `Pulumi.prod.yaml`, e.g. `us-west1`) |
 | Secret Manager | `openrouter-api-key` |
 | Runtime SA | `service-app-api@kgs-service-app.iam.gserviceaccount.com` |
 | GitHub deploy SA | `github-deploy@kgs-service-app.iam.gserviceaccount.com` |

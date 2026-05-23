@@ -1,7 +1,7 @@
 # Deploy API to GCP Cloud Run
 
 Project: **`kgs-service-app`**  
-Service: **`service-app-api`** (region **`us-central1`**)
+Service: **`service-app-api`** (region **`us-west1`** — must match Pulumi `gcp:region` and workflow `REGION`)
 
 GitHub Actions deploys on push to **`main`** or **`dev`** after tests pass.
 
@@ -12,7 +12,7 @@ GitHub Actions deploys on push to **`main`** or **`dev`** after tests pass.
 | Component | Purpose |
 |-----------|---------|
 | **Pulumi** (`infra/`) | APIs, Artifact Registry, Secret Manager, IAM — [recommended setup](#option-a-pulumi-recommended) |
-| **Artifact Registry** | Docker images (`us-central1-docker.pkg.dev/kgs-service-app/service-app/api`) |
+| **Artifact Registry** | Docker images (`us-west1-docker.pkg.dev/kgs-service-app/service-app/api`) |
 | **Cloud Run** | Hosts FastAPI (`GET /health`, `POST /parse`) — deployed by GitHub Actions |
 | **Secret Manager** | `openrouter-api-key` → env `OPENROUTER_API_KEY` on Cloud Run |
 | **GitHub Actions** | Build image, push, deploy (`.github/workflows/deploy-cloud-run.yml`) |
@@ -75,7 +75,7 @@ gcloud services enable \
 ```bash
 gcloud artifacts repositories create service-app \
   --repository-format=docker \
-  --location=us-central1 \
+  --location=us-west1 \
   --description="Service App API images"
 ```
 
@@ -153,14 +153,14 @@ After deploy:
 
 ```bash
 gcloud run services describe service-app-api \
-  --region us-central1 \
+  --region us-west1 \
   --format 'value(status.url)'
 ```
 
 ### Smoke test
 
 ```bash
-export SERVICE_URL="https://service-app-api-XXXX.us-central1.run.app"
+export SERVICE_URL="https://service-app-api-XXXX.us-west1.run.app"
 
 curl -s "$SERVICE_URL/health"
 

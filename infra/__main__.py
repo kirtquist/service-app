@@ -14,7 +14,7 @@ config = pulumi.Config()
 gcp_config = pulumi.Config("gcp")
 
 project = gcp_config.require("project")
-region = gcp_config.get("region") or "us-central1"
+region = gcp_config.get("region") or "us-west1"
 openrouter_api_key = config.require_secret("openrouterApiKey")
 
 REQUIRED_APIS = [
