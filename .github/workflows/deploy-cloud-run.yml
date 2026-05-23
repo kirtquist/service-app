@@ -13,11 +13,11 @@ on:
 
 env:
   PROJECT_ID: kgs-service-app
-  # Must match Pulumi stack config: infra/Pulumi.prod.yaml → gcp:region, default us-west1
   REGION: us-west1
   SERVICE: service-app-api
   AR_REPOSITORY: service-app
   RUNTIME_SA: service-app-api@kgs-service-app.iam.gserviceaccount.com
+  CLOUD_SQL_INSTANCE: kgs-service-app:us-west1:service-app-db
 
 jobs:
   test:
@@ -82,10 +82,12 @@ jobs:
             OPENROUTER_API_KEY=openrouter-api-key:latest
             TWILIO_AUTH_TOKEN=twilio-auth-token:latest
             WEB_AUTH_PASSWORD=web-auth-password:latest
+            DATABASE_URL=database-url:latest
           flags: >-
             --allow-unauthenticated
             --service-account=${{ env.RUNTIME_SA }}
-            --set-env-vars=PUBLIC_BASE_URL=https://service-app-api-fozkmmaapq-uw.a.run.app,TWILIO_VALIDATE_SIGNATURES=true,DATABASE_URL=sqlite:////tmp/service_app.db,OPENROUTER_HTTP_REFERER=https://github.com/kirtquist/service-app,OPENROUTER_X_TITLE='Service App MVP',WEB_AUTH_USERNAME=admin
+            --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }}
+            --set-env-vars=PUBLIC_BASE_URL=https://service-app-api-fozkmmaapq-uw.a.run.app,TWILIO_VALIDATE_SIGNATURES=true,OPENROUTER_HTTP_REFERER=https://github.com/kirtquist/service-app,OPENROUTER_X_TITLE='Service App MVP',WEB_AUTH_USERNAME=admin
             --memory=512Mi
             --cpu=1
             --min-instances=0

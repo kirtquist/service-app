@@ -90,6 +90,17 @@
   </div>
 </div>
 
+{% if invoice.status == statuses.APPROVED.value %}
+<div class="card">
+  <h3 style="margin-top:0;">Export</h3>
+  <p class="muted" style="margin-top:0;">Download for QuickBooks import or customer records.</p>
+  <div class="row">
+    <a class="btn" href="/app/invoices/{{ invoice.id }}/export.csv">Download CSV (QuickBooks)</a>
+    <a class="btn btn-secondary" href="/app/invoices/{{ invoice.id }}/export.pdf">Download PDF</a>
+  </div>
+</div>
+{% endif %}
+
 {% if invoice.status != statuses.APPROVED.value %}
 <form method="post" action="/app/invoices/{{ invoice.id }}/approve" style="margin-bottom: 1rem;">
   <button class="btn btn-approve" type="submit">Approve invoice</button>

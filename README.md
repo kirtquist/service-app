@@ -11,7 +11,8 @@ MVP scaffolding for a **field-service** style app aimed first at trades such as 
 - **HTTP API**: FastAPI `GET /health`, `POST /parse`, WhatsApp webhooks (`service-app-api`).
 - **WhatsApp demo**: Twilio sandbox or Meta Cloud API → parsed JSON reply — [`docs/WHATSAPP_SETUP.md`](docs/WHATSAPP_SETUP.md).
 - **Web approval UI**: Review and approve invoices at `/app/invoices` — [`docs/PHASE_1B.md`](docs/PHASE_1B.md).
-- **Invoice persistence**: SQLAlchemy `Invoice` + `InvoiceLine` models (SQLite by default).
+- **Invoice persistence**: SQLAlchemy + Cloud SQL Postgres (prod) or SQLite (local).
+- **Export**: CSV (QuickBooks) and PDF for approved invoices — [`docs/PHASE_2.md`](docs/PHASE_2.md).
 - **Secrets hook**: [`EnvSecretsProvider`](src/service_app/secrets.py) reads from environment; swap for Vault/KMS in production.
 
 ## Setup
@@ -88,6 +89,7 @@ PYTHONPATH=src python app.py   # works without install; prefer pip install -e .
 - [`docs/GCP_DEPLOY.md`](docs/GCP_DEPLOY.md) — Cloud Run deploy (`kgs-service-app`), GitHub Actions, Secret Manager.
 - [`docs/WHATSAPP_SETUP.md`](docs/WHATSAPP_SETUP.md) — Twilio sandbox and Meta Cloud API webhook setup.
 - [`docs/PHASE_1B.md`](docs/PHASE_1B.md) — web invoice list, edit, and approve.
+- [`docs/PHASE_2.md`](docs/PHASE_2.md) — Cloud SQL Postgres and CSV/PDF export.
 - [`docs/SME_DEMO_PROMPTS.md`](docs/SME_DEMO_PROMPTS.md) — plumber-style test messages for demos.
 - [`infra/README.md`](infra/README.md) — Pulumi stack for GCP foundation (recommended one-time setup).
 - [`docs/API_KEYS.md`](docs/API_KEYS.md) — how keys are supplied now and where to plug a vault later.

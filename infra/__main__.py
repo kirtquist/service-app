@@ -1,14 +1,15 @@
 """Pulumi stack — GCP foundation for service-app Cloud Run API.
 
-Creates APIs, Artifact Registry, OpenRouter secret, runtime + GitHub deploy
-service accounts, and IAM. Cloud Run *deployments* stay in GitHub Actions
-(build/push image on each merge to dev/main).
+Creates APIs, Artifact Registry, secrets, Cloud SQL Postgres, runtime + GitHub
+deploy service accounts, and IAM. Cloud Run *deployments* stay in GitHub Actions.
 """
 
 import base64
+from urllib.parse import quote_plus
 
 import pulumi
 import pulumi_gcp as gcp
+import pulumi_random as random
 
 config = pulumi.Config()
 gcp_config = pulumi.Config("gcp")
@@ -18,6 +19,10 @@ region = gcp_config.get("region") or "us-west1"
 openrouter_api_key = config.require_secret("openrouterApiKey")
 web_auth_username = config.get("webAuthUsername") or "admin"
 web_auth_password = config.get_secret("webAuthPassword")
+database_name = config.get("databaseName") or "service_app"
+database_user = config.get("databaseUser") or "service_app"
+database_tier = config.get("databaseTier") or "db-f1-micro"
+database_instance_name = config.get("databaseInstanceName") or "service-app-db"
 
 REQUIRED_APIS = [
     "run.googleapis.com",
@@ -25,7 +30,7 @@ REQUIRED_APIS = [
     "secretmanager.googleapis.com",
     "iam.googleapis.com",
     "cloudbuild.googleapis.com",
-    # Pulumi GCP provider lists regions via Compute API (warning if disabled).
+    "sqladmin.googleapis.com",
     "compute.googleapis.com",
 ]
 
@@ -107,6 +112,87 @@ if web_auth_password is not None:
         member=pulumi.Output.concat("serviceAccount:", runtime_sa.email),
     )
 
+# --- Cloud SQL (PostgreSQL) for durable invoice storage ---
+
+db_password = random.RandomPassword(
+    "database-password",
+    length=32,
+    special=False,
+)
+
+db_instance = gcp.sql.DatabaseInstance(
+    "service-app-db",
+    name=database_instance_name,
+    database_version="POSTGRES_15",
+    region=region,
+    deletion_protection=False,
+    settings=gcp.sql.DatabaseInstanceSettingsArgs(
+        tier=database_tier,
+        edition="ENTERPRISE",
+        ip_configuration=gcp.sql.DatabaseInstanceSettingsIpConfigurationArgs(
+            ipv4_enabled=False,
+        ),
+        backup_configuration=gcp.sql.DatabaseInstanceSettingsBackupConfigurationArgs(
+            enabled=True,
+            point_in_time_recovery_enabled=False,
+        ),
+    ),
+    opts=pulumi.ResourceOptions(depends_on=enabled_apis),
+)
+
+gcp.sql.Database(
+    "service-app-database",
+    name=database_name,
+    instance=db_instance.name,
+    opts=pulumi.ResourceOptions(depends_on=[db_instance]),
+)
+
+gcp.sql.User(
+    "service-app-db-user",
+    name=database_user,
+    instance=db_instance.name,
+    password=db_password.result,
+    opts=pulumi.ResourceOptions(depends_on=[db_instance]),
+)
+
+database_url_secret = gcp.secretmanager.Secret(
+    "database-url",
+    project=project,
+    secret_id="database-url",
+    replication=gcp.secretmanager.SecretReplicationArgs(
+        auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+    ),
+    opts=pulumi.ResourceOptions(depends_on=enabled_apis),
+)
+
+database_url = pulumi.Output.all(db_password.result, db_instance.connection_name).apply(
+    lambda args: (
+        f"postgresql+psycopg2://{database_user}:{quote_plus(args[0])}"
+        f"@/{database_name}?host=/cloudsql/{args[1]}"
+    )
+)
+
+gcp.secretmanager.SecretVersion(
+    "database-url-v1",
+    secret=database_url_secret.id,
+    secret_data=database_url,
+)
+
+gcp.secretmanager.SecretIamMember(
+    "runtime-database-url-secret-accessor",
+    project=project,
+    secret_id=database_url_secret.secret_id,
+    role="roles/secretmanager.secretAccessor",
+    member=pulumi.Output.concat("serviceAccount:", runtime_sa.email),
+)
+
+gcp.projects.IAMMember(
+    "runtime-cloudsql-client",
+    project=project,
+    role="roles/cloudsql.client",
+    member=pulumi.Output.concat("serviceAccount:", runtime_sa.email),
+)
+
 github_sa = gcp.serviceaccount.Account(
     "github-deploy",
     account_id="github-deploy",
@@ -150,6 +236,11 @@ if web_auth_secret is not None:
     pulumi.export("web_auth_password_secret_id", web_auth_secret.secret_id)
 else:
     pulumi.export("web_auth_password_secret_id", "")
+pulumi.export("cloud_sql_instance_name", db_instance.name)
+pulumi.export("cloud_sql_connection_name", db_instance.connection_name)
+pulumi.export("database_name", database_name)
+pulumi.export("database_user", database_user)
+pulumi.export("database_url_secret_id", database_url_secret.secret_id)
 pulumi.export("github_deploy_service_account_email", github_sa.email)
 pulumi.export(
     "github_deploy_sa_key_json",
@@ -160,7 +251,7 @@ pulumi.export(
 pulumi.export(
     "next_steps",
     pulumi.Output.concat(
-        "Add GitHub secret GCP_SA_KEY from `pulumi stack output github_deploy_sa_key_json --show-secrets`, ",
-        "then merge to dev/main to trigger Cloud Run deploy.",
+        "Run `pulumi up`, then merge feature/phase-2 to dev to deploy Cloud Run with ",
+        "`--add-cloudsql-instances=", db_instance.connection_name, "`.",
     ),
 )

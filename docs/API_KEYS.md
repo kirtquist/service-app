@@ -23,6 +23,7 @@ Do **not** commit `.env`. Production secrets live in **GCP Secret Manager**, pro
 |---------------|-------------------|---------------|
 | `openrouterApiKey` (secret) | `openrouter-api-key` | `OPENROUTER_API_KEY` |
 | `webAuthPassword` (secret) | `web-auth-password` | `WEB_AUTH_PASSWORD` |
+| (auto) | `database-url` | `DATABASE_URL` |
 
 GitHub Actions (`.github/workflows/deploy-cloud-run.yml`) mounts these on each deploy. Set values with:
 
