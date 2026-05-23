@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}New invoice — Service App{% endblock %}
+{% block content %}
+<a class="btn btn-secondary" href="/app/invoices" style="margin-bottom: 1rem;">← Back</a>
+
+<div class="card">
+  <h2 style="margin-top:0;">Create from field note</h2>
+  <p class="muted">Paste a technician log. OpenRouter will parse it into line items.</p>
+  <form method="post" action="/app/invoices/new">
+    <label for="transcript">Job note / transcript</label>
+    <textarea id="transcript" name="transcript" rows="6" required placeholder="Smith house — kitchen sink leak, new P-trap and two fittings, about 2 hours"></textarea>
+    <button class="btn" type="submit">Parse and save</button>
+  </form>
+</div>
+{% endblock %}

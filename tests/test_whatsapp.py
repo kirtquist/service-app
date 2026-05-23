@@ -10,6 +10,7 @@ from service_app.schemas import ParseResponse, PricedPartLine
 from service_app.settings import Settings
 from service_app.whatsapp.meta import extract_inbound_text
 from service_app.whatsapp.reply import format_job_reply
+from service_app.whatsapp.twilio_handler import compute_twilio_signature, validate_twilio_signature
 
 client = TestClient(app)
 
@@ -29,6 +30,19 @@ def test_format_job_reply_includes_json() -> None:
     assert "Customer: Baker" in text
     assert "Estimated total: $190.00" in text
     assert '"customer_name": "Baker"' in text
+
+
+def test_twilio_signature_round_trip() -> None:
+    url = "https://service-app-api-fozkmmaapq-uw.a.run.app/webhook/whatsapp/twilio"
+    params = {
+        "Body": "Baker residence, replaced P-trap, 2 hours",
+        "From": "whatsapp:+15644440786",
+        "To": "whatsapp:+14155238886",
+    }
+    auth_token = "test-auth-token"
+    signature = compute_twilio_signature(auth_token, url, params)
+    assert validate_twilio_signature(auth_token, signature, url, params)
+    assert not validate_twilio_signature(auth_token, signature, url + "/", params)
 
 
 def test_extract_inbound_text() -> None:
@@ -123,6 +137,35 @@ def test_meta_webhook_inbound(
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
     mock_send.assert_awaited_once()
+
+
+@patch("service_app.api.app.parse_transcript")
+@patch("service_app.api.app.get_settings")
+def test_twilio_webhook_with_signature_check(
+    mock_settings: MagicMock,
+    mock_parse: MagicMock,
+) -> None:
+    mock_settings.return_value = Settings(
+        TWILIO_VALIDATE_SIGNATURES=True,
+        TWILIO_AUTH_TOKEN="12345",
+        PUBLIC_BASE_URL="https://example.com",
+    )
+    mock_parse.return_value = SAMPLE_RESPONSE
+
+    url = "https://example.com/webhook/whatsapp/twilio"
+    params = {
+        "Body": "Baker job, 2 hours",
+        "From": "whatsapp:+15551234567",
+    }
+    signature = compute_twilio_signature("12345", url, params)
+
+    response = client.post(
+        "/webhook/whatsapp/twilio",
+        data=params,
+        headers={"X-Twilio-Signature": signature},
+    )
+    assert response.status_code == 200
+    assert "Customer: Baker" in response.text
 
 
 @patch("service_app.api.app.parse_transcript")

@@ -18,6 +18,7 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
     "python-multipart>=0.0.9",
+    "jinja2>=3.1.0",
 ]
 
 [project.optional-dependencies]
@@ -32,6 +33,9 @@ where = ["src"]
 
 [tool.setuptools.package-dir]
 "" = "src"
+
+[tool.setuptools.package-data]
+service_app = ["web/templates/*.html"]
 
 [tool.ruff]
 line-length = 100

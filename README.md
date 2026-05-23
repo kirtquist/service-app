@@ -8,9 +8,11 @@ MVP scaffolding for a **field-service** style app aimed first at trades such as 
 
 - **OpenRouter**: Chat Completions via the OpenAI Python SDK pointing at OpenRouter (`OPENROUTER_API_KEY`).
 - **Structured parsing**: Rough technician transcripts → validated JSON (customer, parts, labor hours) via Pydantic.
-- **HTTP API**: FastAPI `GET /health` and `POST /parse` (`service-app-api`) for Cloud Run and WhatsApp webhook.
+- **HTTP API**: FastAPI `GET /health`, `POST /parse`, WhatsApp webhooks (`service-app-api`).
+- **WhatsApp demo**: Twilio sandbox or Meta Cloud API → parsed JSON reply — [`docs/WHATSAPP_SETUP.md`](docs/WHATSAPP_SETUP.md).
+- **Web approval UI**: Review and approve invoices at `/app/invoices` — [`docs/PHASE_1B.md`](docs/PHASE_1B.md).
+- **Invoice persistence**: SQLAlchemy `Invoice` + `InvoiceLine` models (SQLite by default).
 - **Secrets hook**: [`EnvSecretsProvider`](src/service_app/secrets.py) reads from environment; swap for Vault/KMS in production.
-- **Database stub**: SQLAlchemy `Base` + session factory wired for when you add `DATABASE_URL`.
 
 ## Setup
 
@@ -24,11 +26,11 @@ cp .env.example .env
 # Edit .env — set OPENROUTER_API_KEY from https://openrouter.ai/
 ```
 
-Optional: enable SQLite persistence later:
+Optional persistence and web login:
 
 ```bash
-# mkdir -p data
-# DATABASE_URL=sqlite:///./data/service_app.db — then call configure_engine from your app bootstrap
+# DATABASE_URL=sqlite:///./data/service_app.db  # default when unset
+# WEB_AUTH_PASSWORD=choose-a-strong-password    # protects /app/* routes
 ```
 
 ## Usage
@@ -85,6 +87,8 @@ PYTHONPATH=src python app.py   # works without install; prefer pip install -e .
 - [`docs/VISION.md`](docs/VISION.md) — product vision, workflows, QuickBooks direction, roadmap.
 - [`docs/GCP_DEPLOY.md`](docs/GCP_DEPLOY.md) — Cloud Run deploy (`kgs-service-app`), GitHub Actions, Secret Manager.
 - [`docs/WHATSAPP_SETUP.md`](docs/WHATSAPP_SETUP.md) — Twilio sandbox and Meta Cloud API webhook setup.
+- [`docs/PHASE_1B.md`](docs/PHASE_1B.md) — web invoice list, edit, and approve.
+- [`docs/SME_DEMO_PROMPTS.md`](docs/SME_DEMO_PROMPTS.md) — plumber-style test messages for demos.
 - [`infra/README.md`](infra/README.md) — Pulumi stack for GCP foundation (recommended one-time setup).
 - [`docs/API_KEYS.md`](docs/API_KEYS.md) — how keys are supplied now and where to plug a vault later.
 - [`docs/FEATURE_OVERVIEW.md`](docs/FEATURE_OVERVIEW.md) — product/technical roadmap notes.

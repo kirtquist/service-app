@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Service App{% endblock %}</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --muted: #5c6670;
+      --accent: #0b6bcb;
+      --accent-dark: #084f98;
+      --ok: #137333;
+      --warn: #b06000;
+      --border: #d8dee4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+    }
+    header h1 { margin: 0; font-size: 1.25rem; }
+    header p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.95rem; }
+    main { max-width: 720px; margin: 0 auto; padding: 1rem 1.25rem 2rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .btn {
+      display: inline-block;
+      border: none;
+      border-radius: 8px;
+      padding: 0.65rem 1rem;
+      font-size: 1rem;
+      text-decoration: none;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn:hover { background: var(--accent-dark); }
+    .btn-secondary { background: #eef2f6; color: var(--text); }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-approve { background: var(--ok); width: 100%; font-size: 1.1rem; padding: 0.85rem; }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: #eef2f6;
+    }
+    .badge-pending { background: #fff4e5; color: var(--warn); }
+    .badge-approved { background: #e6f4ea; color: var(--ok); }
+    .badge-draft { background: #eef2f6; color: var(--muted); }
+    label { display: block; font-weight: 600; margin-bottom: 0.35rem; }
+    input, textarea, select {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font: inherit;
+      margin-bottom: 0.75rem;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 0.5rem 0.25rem; border-bottom: 1px solid var(--border); }
+    .total { font-size: 1.25rem; font-weight: 700; }
+    .muted { color: var(--muted); }
+    .stack { display: grid; gap: 0.75rem; }
+    .row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+    .invoice-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+    }
+    .invoice-link .card:hover { border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Service App</h1>
+    <p>Review and approve job invoices</p>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -75,6 +75,13 @@ class Settings(BaseSettings):
         description="Public Cloud Run URL for Twilio signature validation (no trailing slash).",
     )
 
+    web_auth_username: str = Field(default="admin", alias="WEB_AUTH_USERNAME")
+    web_auth_password: str | None = Field(
+        default=None,
+        alias="WEB_AUTH_PASSWORD",
+        description="HTTP Basic password for /app web UI (single shop MVP).",
+    )
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

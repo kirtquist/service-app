@@ -1,26 +1,77 @@
-"""FastAPI application — health check, parse, and WhatsApp webhooks."""
+"""FastAPI application — health, parse, WhatsApp webhooks, and web approval UI."""
 
 import logging
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import PlainTextResponse, Response
 
+from service_app.db.bootstrap import init_database
+from service_app.db.session import session_scope
 from service_app.ingestion import ParseError
+from service_app.invoices import service as invoice_service
 from service_app.pricing import parse_transcript
 from service_app.schemas import ParseRequest, ParseResponse
 from service_app.settings import get_settings
+from service_app.web.routes import router as web_router
 from service_app.whatsapp import meta as meta_whatsapp
 from service_app.whatsapp import twilio_handler
 from service_app.whatsapp.reply import format_error_reply, format_job_reply
 
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    settings = get_settings()
+    init_database(settings.database_url)
+    yield
+
+
 app = FastAPI(
     title="Service App API",
-    description="Phase 1a — parse technician transcripts; WhatsApp demo webhooks.",
-    version="0.1.0",
+    description="Phase 1 — parse field notes, WhatsApp demos, web invoice approval.",
+    version="0.2.0",
+    lifespan=lifespan,
 )
+app.include_router(web_router)
+
+
+def _save_parsed_invoice(parsed: ParseResponse, *, transcript: str, channel: str) -> int | None:
+    try:
+        with session_scope() as session:
+            invoice = invoice_service.create_invoice_from_parse(
+                session,
+                parsed,
+                transcript=transcript,
+                source_channel=channel,
+            )
+            return invoice.id
+    except Exception:
+        logger.exception("Failed to persist invoice from %s", channel)
+        return None
+
+
+def _review_url(invoice_id: int) -> str | None:
+    settings = get_settings()
+    if settings.public_base_url:
+        return f"{settings.public_base_url.rstrip('/')}/app/invoices/{invoice_id}"
+    return f"/app/invoices/{invoice_id}"
+
+
+def _handle_transcript(transcript: str, *, channel: str) -> str:
+    try:
+        result = parse_transcript(transcript)
+        reply = format_job_reply(result)
+        invoice_id = _save_parsed_invoice(result, transcript=transcript, channel=channel)
+        if invoice_id is not None:
+            reply += f"\n\nSaved as invoice #{invoice_id}\nReview: {_review_url(invoice_id)}"
+        return reply
+    except ParseError as exc:
+        return format_error_reply(str(exc))
+    except RuntimeError as exc:
+        return format_error_reply(str(exc))
 
 
 @app.get("/health")
@@ -40,14 +91,7 @@ def parse_endpoint(body: ParseRequest) -> ParseResponse:
 
 async def _meta_reply(sender: str, text: str) -> None:
     settings = get_settings()
-    try:
-        result = parse_transcript(text)
-        reply = format_job_reply(result)
-    except ParseError as exc:
-        reply = format_error_reply(str(exc))
-    except RuntimeError as exc:
-        reply = format_error_reply(str(exc))
-
+    reply = _handle_transcript(text, channel="whatsapp")
     await meta_whatsapp.send_text_message(settings, to=sender, body=reply)
 
 
@@ -85,14 +129,6 @@ async def whatsapp_meta_inbound(request: Request) -> dict[str, str]:
         raise HTTPException(status_code=500, detail="Failed to process WhatsApp message.") from None
 
 
-def _twilio_reply_for_transcript(transcript: str) -> str:
-    try:
-        result = parse_transcript(transcript)
-        return format_job_reply(result)
-    except (ParseError, RuntimeError) as exc:
-        return format_error_reply(str(exc))
-
-
 @app.post("/webhook/whatsapp/twilio")
 async def whatsapp_twilio_inbound(request: Request) -> Response:
     """
@@ -120,14 +156,13 @@ async def whatsapp_twilio_inbound(request: Request) -> Response:
             )
         signature = request.headers.get("X-Twilio-Signature", "")
         webhook_url = f"{settings.public_base_url.rstrip('/')}/webhook/whatsapp/twilio"
-        params = {k: str(v) for k, v in form.multi_items()}
         if not twilio_handler.validate_twilio_signature(
             settings.twilio_auth_token,
             signature,
             webhook_url,
-            params,
+            form,
         ):
             raise HTTPException(status_code=403, detail="Invalid Twilio signature.")
 
-    reply = _twilio_reply_for_transcript(transcript)
+    reply = _handle_transcript(transcript, channel="whatsapp")
     return Response(content=twilio_handler.twiml_message(reply), media_type="application/xml")

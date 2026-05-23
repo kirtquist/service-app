@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Invoice #{{ invoice.id }} — Service App{% endblock %}
+{% block content %}
+<a class="btn btn-secondary" href="/app/invoices" style="margin-bottom: 1rem;">← All invoices</a>
+
+<div class="card">
+  <div class="row" style="justify-content: space-between;">
+    <h2 style="margin:0;">Invoice #{{ invoice.id }}</h2>
+    <span class="badge badge-{{ invoice.status.replace('_review', '') }}">{{ status_labels.get(invoice.status, invoice.status) }}</span>
+  </div>
+
+  <form method="post" action="/app/invoices/{{ invoice.id }}/customer" class="stack" style="margin-top: 1rem;">
+    <div>
+      <label for="customer_name">Customer</label>
+      <input id="customer_name" name="customer_name" value="{{ invoice.customer_name }}" required>
+    </div>
+    <button class="btn btn-secondary" type="submit">Save customer</button>
+  </form>
+</div>
+
+{% if invoice.source_transcript %}
+<div class="card">
+  <h3 style="margin-top:0;">Original note</h3>
+  <p class="muted" style="margin:0; white-space: pre-wrap;">{{ invoice.source_transcript }}</p>
+</div>
+{% endif %}
+
+<div class="card">
+  <h3 style="margin-top:0;">Line items</h3>
+  {% if invoice.lines %}
+  <table>
+    <thead>
+      <tr><th>Part</th><th>Qty</th><th>Price</th><th>Total</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for line in invoice.lines %}
+      <tr>
+        <td colspan="5">
+          <form method="post" action="/app/invoices/{{ invoice.id }}/lines/{{ line.id }}/update" class="stack">
+            <div class="row">
+              <input name="name" value="{{ line.name }}" required style="flex:2;">
+              <input name="quantity" type="number" step="0.01" min="0.01" value="{{ line.quantity }}" required style="width:5rem;">
+              <input name="unit_price" type="number" step="0.01" min="0" value="{{ line.unit_price }}" required style="width:6rem;">
+              <strong style="min-width:5rem;">${{ '%.2f'|format(line.line_total) }}</strong>
+              <button class="btn btn-secondary" type="submit">Save</button>
+            </div>
+          </form>
+          <form method="post" action="/app/invoices/{{ invoice.id }}/lines/{{ line.id }}/delete" style="margin-top:0.35rem;">
+            <button class="btn btn-secondary" type="submit">Remove line</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No parts listed.</p>
+  {% endif %}
+
+  <form method="post" action="/app/invoices/{{ invoice.id }}/lines/add" class="stack" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+    <h4 style="margin:0;">Add line</h4>
+    <div class="row">
+      <input name="name" placeholder="Part name" required style="flex:2;">
+      <input name="quantity" type="number" step="0.01" min="0.01" value="1" required style="width:5rem;">
+      <input name="unit_price" type="number" step="0.01" min="0" value="0" required style="width:6rem;">
+      <button class="btn btn-secondary" type="submit">Add</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">Labor</h3>
+  <form method="post" action="/app/invoices/{{ invoice.id }}/labor" class="row">
+    <input name="labor_hours" type="number" step="0.25" min="0" value="{{ invoice.labor_hours }}" required style="width:6rem;">
+    <span>hours @ $</span>
+    <input name="labor_rate" type="number" step="0.01" min="0" value="{{ invoice.labor_rate }}" required style="width:6rem;">
+    <span>/hr = <strong>${{ '%.2f'|format(invoice.labor_total) }}</strong></span>
+    <button class="btn btn-secondary" type="submit">Update labor</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="row" style="justify-content: space-between;">
+    <span>Parts total</span>
+    <strong>${{ '%.2f'|format(invoice.parts_total) }}</strong>
+  </div>
+  <div class="row" style="justify-content: space-between; margin-top: 0.5rem;">
+    <span class="total">Estimated total</span>
+    <span class="total">${{ '%.2f'|format(invoice.estimated_total) }}</span>
+  </div>
+</div>
+
+{% if invoice.status != statuses.APPROVED.value %}
+<form method="post" action="/app/invoices/{{ invoice.id }}/approve" style="margin-bottom: 1rem;">
+  <button class="btn btn-approve" type="submit">Approve invoice</button>
+</form>
+{% endif %}
+
+<div class="card">
+  <form method="post" action="/app/invoices/{{ invoice.id }}/status" class="row">
+    <label for="status" style="margin:0;">Change status</label>
+    <select id="status" name="status">
+      {% for status in statuses %}
+      <option value="{{ status.value }}" {% if invoice.status == status.value %}selected{% endif %}>{{ status_labels.get(status.value, status.value) }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-secondary" type="submit">Update</button>
+  </form>
+</div>
+{% endblock %}

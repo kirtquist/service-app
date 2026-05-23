@@ -175,27 +175,20 @@ Aligned with [`FEATURE_OVERVIEW.md`](FEATURE_OVERVIEW.md):
 
 - OpenRouter parsing, mock catalog, CLI demo, DB stubs, secrets pattern.
 
-### Phase 1a — Demo loop (WhatsApp + Cloud Run) ← **start here**
+### Phase 1a — Demo loop (WhatsApp + Cloud Run) ✅
 
-Prove parse in the field; JSON reply in chat. Minimal scope:
+Prove parse in the field; JSON reply in chat. **Complete** — Twilio sandbox tested live.
 
-1. Pydantic model for parse output (validate LLM JSON).
-2. Small **FastAPI** app: `GET /health`, `POST /parse` (internal), `POST /webhook/whatsapp`.
-3. WhatsApp provider: **Twilio Sandbox** or **Meta WhatsApp Cloud API** (sandbox for speed; Meta for production-like demos).
-4. Flow: inbound message → `parse_service_call()` → reply with formatted JSON (optionally append catalog line totals).
-5. **Dockerfile** + deploy to **Cloud Run**; secrets from GCP Secret Manager.
-6. Smoke-test with 3–5 real-ish plumber job notes; iterate prompt with SME feedback.
+### Phase 1b — Approval MVP (web) ✅
 
-**Not in 1a:** auth, database, invoice persistence, web UI, QuickBooks.
+- HTTP Basic auth (single shop) — `WEB_AUTH_PASSWORD`
+- Invoice list and detail in browser — `/app/invoices`
+- Status workflow: draft → pending → approved
+- Edit line items, labor, customer on detail page
+- WhatsApp + web create **pending_review** invoices in SQLite
+- Paste transcript at `/app/invoices/new`
 
-### Phase 1b — Approval MVP (web)
-
-- Auth (single shop).
-- Invoice list and detail in browser.
-- Status workflow: draft → pending → approved.
-- Manual create/edit line items.
-- Persist parsed WhatsApp (or manual) jobs as **draft invoices** in DB.
-- Optional: link from web “paste transcript” using same `/parse` API.
+See [`PHASE_1B.md`](PHASE_1B.md).
 
 ### Phase 2 — Export
 
@@ -231,22 +224,21 @@ Use this as the working task list until the WhatsApp demo is live.
 ### Week 2 — Cloud Run
 
 - [x] Add `Dockerfile` (slim Python image, `uvicorn` entrypoint).
-- [ ] GCP project + Artifact Registry — run **`pulumi up`** in [`infra/`](../infra/README.md) (project **`kgs-service-app`**) or manual steps in [`GCP_DEPLOY.md`](GCP_DEPLOY.md)
-- [ ] Secret Manager: `openrouter-api-key` → `OPENROUTER_API_KEY` on Cloud Run.
-- [x] GitHub Actions deploy workflow (push to `dev` / `main` after tests).
-- [ ] Add **`GCP_SA_KEY`** GitHub secret; merge to `dev` and confirm deploy.
-- [ ] Confirm `GET /health` and `POST /parse` from curl against Cloud Run URL.
+- [x] GCP project + Artifact Registry — **`kgs-service-app`** via Pulumi / manual setup
+- [x] Secret Manager: `openrouter-api-key`, `twilio-auth-token` on Cloud Run
+- [x] GitHub Actions deploy workflow (push to `dev` / `main` after tests)
+- [x] Confirm `GET /health`, `POST /parse`, WhatsApp webhook from production URL
 
 ### Week 3 — WhatsApp
 
 - [x] Choose provider — **Twilio sandbox** (`/webhook/whatsapp/twilio`) and **Meta Cloud API** (`/webhook/whatsapp`) implemented; see [`WHATSAPP_SETUP.md`](WHATSAPP_SETUP.md)
 - [x] Implement webhook: Meta verify challenge; Twilio signature validation (optional)
 - [x] On text message: parse → human-readable summary + JSON block
-- [ ] Configure provider credentials on Cloud Run; test with yourself, then SME contact
+- [x] Configure provider credentials on Cloud Run; test with yourself, then SME contact
 
 ### Week 4 — SME feedback
 
-- [ ] Prepare 5 example prompts (plumber-flavored, not electrician).
+- [ ] Prepare 5 example prompts (plumber-flavored) — see [`SME_DEMO_PROMPTS.md`](SME_DEMO_PROMPTS.md)
 - [ ] SME session: watch them send real-style messages; note confusion and missing fields.
 - [ ] Tune prompt and reply format; log transcripts (with consent) for iteration.
 - [ ] Decide: proceed to Phase 1b web UI or extend WhatsApp (voice, “approve” keyword).
@@ -283,4 +275,4 @@ Use this as the working task list until the WhatsApp demo is live.
 | 2026-05-22 | Initial vision doc — web approval workflow, QuickBooks direction, SME validation plan |
 | 2026-05-22 | Demo strategy — WhatsApp + Cloud Run in Phase 1a; Phase 1b web approval; Phase 1a checklist |
 | 2026-05-22 | Dockerfile, GitHub Actions deploy to Cloud Run (`kgs-service-app`); [`GCP_DEPLOY.md`](GCP_DEPLOY.md) |
-| 2026-05-22 | Pulumi stack in `infra/` for GCP foundation (APIs, AR, secrets, IAM) |
+| 2026-05-23 | Phase 1b web approval UI — invoice DB, `/app/invoices`, WhatsApp → saved invoices |

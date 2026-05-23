@@ -9,8 +9,8 @@ Technical snapshot of what exists in the repo today and what comes next. Product
   - Capture technician narration (speech-to-text upstream, not bundled here yet).
   - Parse into structured jobs: customer, labor time, billable SKUs / line items.
   - Price lookups against internal catalogs loaded from eventual database tables.
-  - **Web UI** for invoice list/detail, edit line items, and approve at home (Phase 1b in `VISION.md`).
-  - **WhatsApp bot** for early demos: send a job note → get parsed JSON (Phase 1a in `VISION.md`).
+  - **Web UI** for invoice list/detail, edit line items, and approve at home — **Phase 1b done** → [`PHASE_1B.md`](PHASE_1B.md).
+  - **WhatsApp bot** for early demos: send a job note → get parsed JSON back — **Phase 1a done** → [`WHATSAPP_SETUP.md`](WHATSAPP_SETUP.md).
 
 ## What works today
 
@@ -19,20 +19,22 @@ Technical snapshot of what exists in the repo today and what comes next. Product
 | Sample price catalog | `service-app-demo` |
 | LLM parse of a field log | `service-app-demo --parse '...'` (requires `OPENROUTER_API_KEY` in `.env`) |
 | HTTP parse API | `service-app-api` then `POST /parse` with `{"transcript":"..."}` |
+| WhatsApp demo | Twilio sandbox → Cloud Run webhook — [`WHATSAPP_SETUP.md`](WHATSAPP_SETUP.md) |
+| Web invoice approval | `http://127.0.0.1:8090/app/invoices` — [`PHASE_1B.md`](PHASE_1B.md) |
 | Programmatic use | `from service_app.ingestion import parse_service_call` after `pip install -e .` |
 
 ## Technical building blocks
 
 | Area | Current state | Next steps |
 |------|----------------|------------|
-| LLM ingestion | [`parse_service_call`](../src/service_app/ingestion.py) + [`schemas`](../src/service_app/schemas.py) | WhatsApp webhook on [`api/app.py`](../src/service_app/api/app.py) |
-| Catalog | Dict in [`catalog.py`](../src/service_app/catalog.py) | DB tables (`parts`, regional price lists); seed plumber SKUs |
-| Secrets | Env + `.env` via [`SecretsProvider`](../src/service_app/secrets.py) | GCP Secret Manager on Cloud Run; see [`API_KEYS.md`](API_KEYS.md) |
-| Database | SQLAlchemy `Base` + [`session`](../src/service_app/db/session.py) stubs | Phase 1b: `customer`, `job`, `invoice`, `invoice_line`; Alembic |
-| API / hosting | FastAPI [`/health`](../src/service_app/api/app.py), [`/parse`](../src/service_app/api/app.py) — `service-app-api`; Dockerfile + GH Actions → Cloud Run (`kgs-service-app`) — see [`GCP_DEPLOY.md`](GCP_DEPLOY.md) |
-| WhatsApp | Meta + Twilio webhooks on Cloud Run — see [`WHATSAPP_SETUP.md`](WHATSAPP_SETUP.md) | Configure secrets on Cloud Run; SME testing |
-| Web UI | Not started | Invoice CRUD + approval (Phase 1b) |
-| Bookkeeping | Not started | CSV export, then QuickBooks Online API (see `VISION.md`) |
+| LLM ingestion | [`parse_service_call`](../src/service_app/ingestion.py) + [`schemas`](../src/service_app/schemas.py) | Tune prompts from SME feedback |
+| Catalog | Dict in [`catalog.py`](../src/service_app/catalog.py) | DB tables; seed plumber SKUs |
+| Secrets | Env + `.env` via [`SecretsProvider`](../src/service_app/secrets.py) | GCP Secret Manager on Cloud Run |
+| Database | [`models`](../src/service_app/db/models.py) — `Invoice`, `InvoiceLine` | Cloud SQL for production persistence |
+| API / hosting | FastAPI + Cloud Run (`kgs-service-app`) — [`GCP_DEPLOY.md`](GCP_DEPLOY.md) | Persist deploy env vars in workflow |
+| WhatsApp | Meta + Twilio webhooks; saves invoices | SME pilot sessions |
+| Web UI | `/app/invoices` — list, edit, approve | Phase 2 export buttons |
+| Bookkeeping | Not started | CSV export, then QuickBooks Online API |
 
 ## OpenRouter specifics
 
@@ -42,11 +44,11 @@ Environment variables: `OPENROUTER_API_KEY` (required for `--parse`), optional `
 
 ## CLI vs product
 
-[`service_app/cli.py`](../src/service_app/cli.py) (`service-app-demo`) is a **developer demo**. End users will demo via **WhatsApp** (Phase 1a) and approve invoices in a **browser** (Phase 1b).
+[`service_app/cli.py`](../src/service_app/cli.py) (`service-app-demo`) is a **developer demo**. End users demo via **WhatsApp** and approve invoices in the **browser**.
 
 ## Next steps
 
-See **[`VISION.md` — Phase 1a checklist](VISION.md#phase-1a--checklist-get-started)** for the ordered build list (API → Cloud Run → WhatsApp → SME feedback).
+**Phase 2:** CSV/PDF export for QuickBooks. See [`VISION.md`](VISION.md).
 
 ## Naming / roadmap
 
