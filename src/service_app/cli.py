@@ -17,8 +17,12 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.parse:
-        result = parse_service_call(args.parse)
-        print(json.dumps(result, indent=2))
+        try:
+            result = parse_service_call(args.parse)
+        except ValueError as exc:
+            print(f"Parse error: {exc}", file=__import__("sys").stderr)
+            raise SystemExit(1) from exc
+        print(json.dumps(result.model_dump(), indent=2))
         return
 
     print("Catalog (sample electrician-style parts; swap for plumbers):")

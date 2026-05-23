@@ -1,0 +1,3 @@
+config:
+  gcp:project: kgs-service-app
+  gcp:region: us-central1
