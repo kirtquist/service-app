@@ -129,8 +129,13 @@ db_instance = gcp.sql.DatabaseInstance(
     settings=gcp.sql.DatabaseInstanceSettingsArgs(
         tier=database_tier,
         edition="ENTERPRISE",
+        availability_type="ZONAL",
+        disk_size=10,
+        disk_type="PD_SSD",
         ip_configuration=gcp.sql.DatabaseInstanceSettingsIpConfigurationArgs(
-            ipv4_enabled=False,
+            # Public IP required for Cloud Run connector without VPC/PSC.
+            # Cloud Run connects via /cloudsql/ socket — not open Postgres to the internet.
+            ipv4_enabled=True,
         ),
         backup_configuration=gcp.sql.DatabaseInstanceSettingsBackupConfigurationArgs(
             enabled=True,

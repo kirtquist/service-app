@@ -59,6 +59,8 @@ Optional config (`Pulumi.prod.yaml`):
 
 Password is auto-generated (`pulumi-random`) and stored only in Secret Manager via the connection URL.
 
+**Connectivity:** instance has a public IP (required by GCP when not using private IP/PSC). Cloud Run uses the **Cloud SQL connector** (`/cloudsql/...` socket) — not direct internet access to port 5432.
+
 ---
 
 ## Export (QuickBooks + PDF)
