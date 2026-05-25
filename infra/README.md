@@ -6,12 +6,13 @@ Provisions **long-lived** resources with [Pulumi](https://www.pulumi.com/) (Pyth
 
 | Resource | Name / ID |
 |----------|-----------|
-| Enabled APIs | Run, Artifact Registry, Secret Manager, IAM, Cloud Build, **Compute** (provider region lookup) |
+| Enabled APIs | Run, Artifact Registry, Secret Manager, IAM, Cloud Build, **SQL Admin**, Compute |
 | Artifact Registry | `service-app` (Docker, region from `Pulumi.prod.yaml`, e.g. `us-west1`) |
-| Secret Manager | `openrouter-api-key`, optional `web-auth-password` |
+| Secret Manager | `openrouter-api-key`, `web-auth-password`, `database-url` |
+| Cloud SQL | PostgreSQL 15 instance `service-app-db`, database `service_app` |
 | Runtime SA | `service-app-api@kgs-service-app.iam.gserviceaccount.com` |
 | GitHub deploy SA | `github-deploy@kgs-service-app.iam.gserviceaccount.com` |
-| IAM | Runtime SA → read secrets; GitHub SA → deploy + push images |
+| IAM | Runtime SA → read secrets + Cloud SQL client; GitHub SA → deploy + push images |
 
 ## Prerequisites
 
@@ -104,6 +105,8 @@ pulumi stack output artifact_registry_repository
 pulumi stack output runtime_service_account_email
 pulumi stack output web_auth_username
 pulumi stack output web_auth_password_secret_id
+pulumi stack output cloud_sql_connection_name
+pulumi stack output database_url_secret_id
 ```
 
 ## Troubleshooting

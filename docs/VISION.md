@@ -137,6 +137,7 @@ Aligned with [`FEATURE_OVERVIEW.md`](FEATURE_OVERVIEW.md):
 | **LLM** | OpenRouter — parse field transcripts into structured job data |
 | **Catalog / pricing** | DB-backed parts and labor rates; plumber SKUs replace electrician placeholders |
 | **Persistence** | SQLAlchemy models (`customer`, `job`, `invoice`, `invoice_line`); Alembic migrations |
+| **Database (prod)** | **Cloud SQL PostgreSQL 15** via Pulumi — see [`PHASE_2.md`](PHASE_2.md) |
 | **Web UI** | Primary surface for **approval at home** | Invoice list, edit, approve (Phase 1b) |
 | **WhatsApp** | Early **field demo** channel | Send job text → get parsed JSON back (Phase 1a) |
 | **Hosting** | GCP **Cloud Run** for demos | Webhook + API; scale-to-zero, low cost |
@@ -190,10 +191,13 @@ Prove parse in the field; JSON reply in chat. **Complete** — Twilio sandbox te
 
 See [`PHASE_1B.md`](PHASE_1B.md).
 
-### Phase 2 — Export
+### Phase 2 — Export ✅
 
-- PDF invoice for customer
-- CSV formatted for QuickBooks import
+- CSV export formatted for QuickBooks import
+- PDF invoice for customer / office
+- **Cloud SQL PostgreSQL** for durable invoice storage (Pulumi-managed)
+
+See [`PHASE_2.md`](PHASE_2.md).
 
 ### Phase 3 — QuickBooks Online
 
@@ -248,10 +252,11 @@ Use this as the working task list until the WhatsApp demo is live.
 | Service | Role |
 |---------|------|
 | **Cloud Run** | Host FastAPI + WhatsApp webhook |
-| **Secret Manager** | OpenRouter + WhatsApp credentials |
+| **Cloud SQL** | PostgreSQL 15 — durable invoice storage |
+| **Secret Manager** | OpenRouter, Twilio, web auth, database URL |
 | **Artifact Registry** | Store container images |
 | **Cloud Build** (optional) | CI deploy on push to `main` |
-| **Cloud SQL / SQLite in volume** | Defer to Phase 1b — not needed for JSON demo |
+| **Cloud SQL** | PostgreSQL invoice storage (Phase 2) — see [`PHASE_2.md`](PHASE_2.md) |
 
 ---
 
@@ -275,4 +280,4 @@ Use this as the working task list until the WhatsApp demo is live.
 | 2026-05-22 | Initial vision doc — web approval workflow, QuickBooks direction, SME validation plan |
 | 2026-05-22 | Demo strategy — WhatsApp + Cloud Run in Phase 1a; Phase 1b web approval; Phase 1a checklist |
 | 2026-05-22 | Dockerfile, GitHub Actions deploy to Cloud Run (`kgs-service-app`); [`GCP_DEPLOY.md`](GCP_DEPLOY.md) |
-| 2026-05-23 | Phase 1b web approval UI — invoice DB, `/app/invoices`, WhatsApp → saved invoices |
+| 2026-05-23 | Phase 2 — Cloud SQL Postgres (Pulumi), CSV/PDF export for approved invoices |

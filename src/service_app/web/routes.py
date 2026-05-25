@@ -5,12 +5,14 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from service_app.db.models import InvoiceStatus
+from service_app.db.models import Invoice, InvoiceStatus
 from service_app.db.session import get_session
+from service_app.export.csv_export import build_quickbooks_csv, invoice_number
+from service_app.export.pdf_export import build_invoice_pdf
 from service_app.invoices import service as invoice_service
 from service_app.pricing import ParseError, parse_transcript
 from service_app.web.auth import require_web_auth
@@ -240,3 +242,50 @@ def delete_line(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     return RedirectResponse(url=f"/app/invoices/{invoice_id}", status_code=303)
+
+
+def _get_invoice_or_404(session: Session, invoice_id: int) -> Invoice:
+    invoice = invoice_service.get_invoice(session, invoice_id)
+    if invoice is None:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    return invoice
+
+
+@router.get(
+    "/invoices/{invoice_id}/export.csv",
+    dependencies=[Depends(require_web_auth)],
+)
+def export_invoice_csv(
+    invoice_id: int,
+    session: Session = Depends(_session_dep),
+) -> Response:
+    invoice = _get_invoice_or_404(session, invoice_id)
+    if invoice.status != InvoiceStatus.APPROVED.value:
+        raise HTTPException(status_code=400, detail="Only approved invoices can be exported.")
+
+    filename = f"{invoice_number(invoice).lower()}-quickbooks.csv"
+    return Response(
+        content=build_quickbooks_csv(invoice),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get(
+    "/invoices/{invoice_id}/export.pdf",
+    dependencies=[Depends(require_web_auth)],
+)
+def export_invoice_pdf(
+    invoice_id: int,
+    session: Session = Depends(_session_dep),
+) -> Response:
+    invoice = _get_invoice_or_404(session, invoice_id)
+    if invoice.status != InvoiceStatus.APPROVED.value:
+        raise HTTPException(status_code=400, detail="Only approved invoices can be exported.")
+
+    filename = f"{invoice_number(invoice).lower()}.pdf"
+    return Response(
+        content=build_invoice_pdf(invoice),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

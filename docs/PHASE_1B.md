@@ -47,9 +47,9 @@ After `pulumi up`, push to `dev`/`main` (or re-run the deploy workflow) so Cloud
 | Environment | `DATABASE_URL` |
 |-------------|----------------|
 | Local default | `sqlite:///./data/service_app.db` |
-| Cloud Run (demo) | `sqlite:////tmp/service_app.db` |
+| Production | PostgreSQL on **Cloud SQL** — Pulumi secret `database-url` |
 
-Cloud Run SQLite is **ephemeral** — data survives restarts but not redeploys. For production, use Cloud SQL Postgres and set `DATABASE_URL` accordingly.
+Cloud Run connects via the Cloud SQL Auth proxy (`--add-cloudsql-instances`). See [`PHASE_2.md`](PHASE_2.md).
 
 Tables are created automatically on startup (`create_all`).
 

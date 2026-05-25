@@ -13,8 +13,9 @@ GitHub Actions deploys on push to **`main`** or **`dev`** after tests pass.
 |-----------|---------|
 | **Pulumi** (`infra/`) | APIs, Artifact Registry, Secret Manager, IAM — [recommended setup](#option-a-pulumi-recommended) |
 | **Artifact Registry** | Docker images (`us-west1-docker.pkg.dev/kgs-service-app/service-app/api`) |
-| **Cloud Run** | Hosts FastAPI (`GET /health`, `POST /parse`) — deployed by GitHub Actions |
-| **Secret Manager** | `openrouter-api-key`, `web-auth-password`, `twilio-auth-token` → Cloud Run env |
+| **Cloud Run** | Hosts FastAPI, WhatsApp webhooks, web UI |
+| **Cloud SQL** | PostgreSQL 15 — invoice persistence ([`PHASE_2.md`](PHASE_2.md)) |
+| **Secret Manager** | `openrouter-api-key`, `web-auth-password`, `database-url`, `twilio-auth-token` |
 | **GitHub Actions** | Build image, push, deploy (`.github/workflows/deploy-cloud-run.yml`) |
 
 Cloud Run injects **`PORT=8080`**. Local dev uses **8090** by default (`service-app-api`).
