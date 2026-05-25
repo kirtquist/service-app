@@ -25,3 +25,7 @@ Thumbs.db
 
 # Secrets directory (optional local overrides — see docs/API_KEYS.md)
 .config/service-app/secrets.*
+
+# Pulumi
+infra/venv/
+infra/.pulumi/

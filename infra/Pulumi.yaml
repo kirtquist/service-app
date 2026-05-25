@@ -1,0 +1,7 @@
+name: service-app-infra
+runtime:
+  name: python
+  options:
+    toolchain: pip
+    virtualenv: venv
+description: GCP foundation for service-app (Artifact Registry, secrets, IAM)

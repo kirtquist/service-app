@@ -1,0 +1,12 @@
+config:
+  gcp:project: kgs-service-app
+  gcp:region: us-west1
+  service-app-infra:webAuthUsername: admin
+  service-app-infra:databaseName: service_app
+  service-app-infra:databaseUser: service_app
+  service-app-infra:databaseTier: db-f1-micro
+  service-app-infra:databaseInstanceName: service-app-db
+  service-app-infra:openrouterApiKey:
+    secure: AAABAPJP1mQujPQ6TyC/hXPnFBVVou2M43VTHCqW79KYytxNEyS44/fr0AOyAKTm3+MAT6P2MFBqu2KItODPWb8mWcMJujm8KItP/wbXKyTseQNuXITJ+DpE7b8PlBD4h1CGTkPkyUi4
+  service-app-infra:webAuthPassword:
+    secure: AAABADRlqlpvY7DHvgNGdqaNg4/u4WNGYvmsiepMRjvO4nD45rhQRTluOyLjyw==

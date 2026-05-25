@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Invoices — Service App{% endblock %}
+{% block content %}
+<div class="row" style="justify-content: space-between; margin-bottom: 1rem;">
+  <div>
+    <h2 style="margin:0;">Invoices</h2>
+    <p class="muted" style="margin:0.25rem 0 0;">Tap a job to review line items</p>
+  </div>
+  <a class="btn" href="/app/invoices/new">+ New from note</a>
+</div>
+
+<div class="row" style="margin-bottom: 1rem;">
+  <a class="btn btn-secondary" href="/app/invoices">All</a>
+  <a class="btn btn-secondary" href="/app/invoices?status=pending_review">Pending</a>
+  <a class="btn btn-secondary" href="/app/invoices?status=approved">Approved</a>
+  <a class="btn btn-secondary" href="/app/invoices?status=draft">Draft</a>
+</div>
+
+{% if invoices %}
+  {% for invoice in invoices %}
+  <a class="invoice-link" href="/app/invoices/{{ invoice.id }}">
+    <div class="card">
+      <div class="row" style="justify-content: space-between;">
+        <strong>{{ invoice.customer_name }}</strong>
+        <span class="badge badge-{{ invoice.status.replace('_review', '') }}">{{ status_labels.get(invoice.status, invoice.status) }}</span>
+      </div>
+      <div class="row" style="justify-content: space-between; margin-top: 0.5rem;">
+        <span class="muted">{{ invoice.created_at.strftime('%b %d, %Y') }}{% if invoice.source_channel %} · {{ invoice.source_channel }}{% endif %}</span>
+        <span class="total">${{ '%.2f'|format(invoice.estimated_total) }}</span>
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+{% else %}
+  <div class="card">
+    <p style="margin:0;">No invoices yet.</p>
+    <p class="muted">Send a WhatsApp job note or create one from a field transcript.</p>
+  </div>
+{% endif %}
+{% endblock %}

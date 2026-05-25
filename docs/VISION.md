@@ -137,9 +137,36 @@ Aligned with [`FEATURE_OVERVIEW.md`](FEATURE_OVERVIEW.md):
 | **LLM** | OpenRouter — parse field transcripts into structured job data |
 | **Catalog / pricing** | DB-backed parts and labor rates; plumber SKUs replace electrician placeholders |
 | **Persistence** | SQLAlchemy models (`customer`, `job`, `invoice`, `invoice_line`); Alembic migrations |
-| **Web UI** | Primary product surface (framework TBD — Django or FastAPI + frontend; favor whatever ships approval UI fastest) |
-| **Secrets** | Env / vault for API keys; no raw keys in app DB |
-| **Integrations** | Export first, then QBO API |
+| **Database (prod)** | **Cloud SQL PostgreSQL 15** via Pulumi — see [`PHASE_2.md`](PHASE_2.md) |
+| **Web UI** | Primary surface for **approval at home** | Invoice list, edit, approve (Phase 1b) |
+| **WhatsApp** | Early **field demo** channel | Send job text → get parsed JSON back (Phase 1a) |
+| **Hosting** | GCP **Cloud Run** for demos | Webhook + API; scale-to-zero, low cost |
+| **Secrets** | Env locally; **Secret Manager** on GCP | No raw keys in app DB |
+| **Integrations** | Export first, then QBO API | After approval workflow validated |
+
+---
+
+## Demo strategy
+
+**Goal:** show value to SMEs and supply contacts **before** the full product exists.
+
+| Channel | Best for | When |
+|---------|----------|------|
+| **CLI** (`service-app-demo`) | Developer testing | Now (done) |
+| **WhatsApp** | Field-style demo — “text the bot a job note, get structured data back” | **Early Phase 1** — first external demo |
+| **Web UI** | Review, edit, approve invoices at home | Phase 1b — after parse demo lands |
+| **QuickBooks** | Bookkeeper handoff | Phase 2+ |
+
+**Why WhatsApp first for demos**
+
+- Plumbers and small-shop owners already use WhatsApp daily — no new app to install.
+- Proves the **core magic** (messy note → structured job JSON) in one message.
+- Easy to share with your supply-side friend’s contacts: “Send this number a voice note or text.”
+- Web approval is still the long-term product; WhatsApp is the **fastest proof** for SME conversations.
+
+**WhatsApp voice notes:** Phase 1a can start with **typed text only**. Voice adds: download media from WhatsApp → speech-to-text (Whisper via OpenRouter or Google STT) → existing `parse_service_call()`. Add voice once text replies work end-to-end.
+
+**Hosting:** Deploy the webhook/API on **GCP Cloud Run** (container, HTTPS URL for Meta/Twilio webhooks, scales to zero for cheap demos). Use **Secret Manager** for `OPENROUTER_API_KEY` and WhatsApp tokens — not `.env` in the image.
 
 ---
 
@@ -149,18 +176,28 @@ Aligned with [`FEATURE_OVERVIEW.md`](FEATURE_OVERVIEW.md):
 
 - OpenRouter parsing, mock catalog, CLI demo, DB stubs, secrets pattern.
 
-### Phase 1 — Approval MVP
+### Phase 1a — Demo loop (WhatsApp + Cloud Run) ✅
 
-- Auth (single shop)
-- Invoice list and detail in browser
+Prove parse in the field; JSON reply in chat. **Complete** — Twilio sandbox tested live.
+
+### Phase 1b — Approval MVP (web) ✅
+
+- HTTP Basic auth (single shop) — `WEB_AUTH_PASSWORD`
+- Invoice list and detail in browser — `/app/invoices`
 - Status workflow: draft → pending → approved
-- Manual create/edit line items
-- Wire `parse_service_call()` to create **draft** invoices from transcript
+- Edit line items, labor, customer on detail page
+- WhatsApp + web create **pending_review** invoices in SQLite
+- Paste transcript at `/app/invoices/new`
 
-### Phase 2 — Export
+See [`PHASE_1B.md`](PHASE_1B.md).
 
-- PDF invoice for customer
-- CSV formatted for QuickBooks import
+### Phase 2 — Export ✅
+
+- CSV export formatted for QuickBooks import
+- PDF invoice for customer / office
+- **Cloud SQL PostgreSQL** for durable invoice storage (Pulumi-managed)
+
+See [`PHASE_2.md`](PHASE_2.md).
 
 ### Phase 3 — QuickBooks Online
 
@@ -169,10 +206,57 @@ Aligned with [`FEATURE_OVERVIEW.md`](FEATURE_OVERVIEW.md):
 
 ### Phase 4 — Field capture & polish
 
-- Speech-to-text integration
+- WhatsApp **voice** notes (STT pipeline)
 - Photos / attachments
 - Smarter catalog and regional pricing
 - SaaS / multi-tenant if validated
+
+---
+
+## Phase 1a — checklist (get started)
+
+Use this as the working task list until the WhatsApp demo is live.
+
+### Week 1 — API + validation
+
+- [x] Add `ParsedServiceCall` Pydantic model (`customer_name`, `parts[]`, `labor_hours`).
+- [x] Validate `parse_service_call()` output; clear errors when model returns bad JSON.
+- [x] Add `service_app/api/` with FastAPI app wrapping existing ingestion + catalog.
+- [x] `POST /parse` — accept `{ "transcript": "..." }`, return validated JSON (+ optional price hints).
+- [x] Unit tests for validation (mock LLM or fixture JSON).
+
+### Week 2 — Cloud Run
+
+- [x] Add `Dockerfile` (slim Python image, `uvicorn` entrypoint).
+- [x] GCP project + Artifact Registry — **`kgs-service-app`** via Pulumi / manual setup
+- [x] Secret Manager: `openrouter-api-key`, `twilio-auth-token` on Cloud Run
+- [x] GitHub Actions deploy workflow (push to `dev` / `main` after tests)
+- [x] Confirm `GET /health`, `POST /parse`, WhatsApp webhook from production URL
+
+### Week 3 — WhatsApp
+
+- [x] Choose provider — **Twilio sandbox** (`/webhook/whatsapp/twilio`) and **Meta Cloud API** (`/webhook/whatsapp`) implemented; see [`WHATSAPP_SETUP.md`](WHATSAPP_SETUP.md)
+- [x] Implement webhook: Meta verify challenge; Twilio signature validation (optional)
+- [x] On text message: parse → human-readable summary + JSON block
+- [x] Configure provider credentials on Cloud Run; test with yourself, then SME contact
+
+### Week 4 — SME feedback
+
+- [ ] Prepare 5 example prompts (plumber-flavored) — see [`SME_DEMO_PROMPTS.md`](SME_DEMO_PROMPTS.md)
+- [ ] SME session: watch them send real-style messages; note confusion and missing fields.
+- [ ] Tune prompt and reply format; log transcripts (with consent) for iteration.
+- [ ] Decide: proceed to Phase 1b web UI or extend WhatsApp (voice, “approve” keyword).
+
+### GCP services (Phase 1a)
+
+| Service | Role |
+|---------|------|
+| **Cloud Run** | Host FastAPI + WhatsApp webhook |
+| **Cloud SQL** | PostgreSQL 15 — durable invoice storage |
+| **Secret Manager** | OpenRouter, Twilio, web auth, database URL |
+| **Artifact Registry** | Store container images |
+| **Cloud Build** (optional) | CI deploy on push to `main` |
+| **Cloud SQL** | PostgreSQL invoice storage (Phase 2) — see [`PHASE_2.md`](PHASE_2.md) |
 
 ---
 
@@ -184,6 +268,8 @@ Aligned with [`FEATURE_OVERVIEW.md`](FEATURE_OVERVIEW.md):
 - [ ] Who is the buyer: owner, bookkeeper, or supplier partner?
 - [ ] Compliance / retention requirements for invoices by state
 - [ ] Brand name and trade-specific marketing (plumbing-only vs multi-trade later)
+- [ ] WhatsApp: Twilio sandbox vs Meta Cloud API for first pilot
+- [ ] WhatsApp Business number ownership (your brand vs test sandbox)
 
 ---
 
@@ -192,3 +278,6 @@ Aligned with [`FEATURE_OVERVIEW.md`](FEATURE_OVERVIEW.md):
 | Date | Change |
 |------|--------|
 | 2026-05-22 | Initial vision doc — web approval workflow, QuickBooks direction, SME validation plan |
+| 2026-05-22 | Demo strategy — WhatsApp + Cloud Run in Phase 1a; Phase 1b web approval; Phase 1a checklist |
+| 2026-05-22 | Dockerfile, GitHub Actions deploy to Cloud Run (`kgs-service-app`); [`GCP_DEPLOY.md`](GCP_DEPLOY.md) |
+| 2026-05-23 | Phase 2 — Cloud SQL Postgres (Pulumi), CSV/PDF export for approved invoices |

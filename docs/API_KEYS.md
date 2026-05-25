@@ -17,11 +17,24 @@ Service credentials (OpenRouter, future QuickBooks OAuth client secrets) belong 
 
 ## Continuous integration / production
 
-Do **not** commit `.env`. On GitHub Actions, use **encrypted repository secrets**:
+Do **not** commit `.env`. Production secrets live in **GCP Secret Manager**, provisioned by Pulumi ([`infra/README.md`](../infra/README.md)):
 
-- `OPENROUTER_API_KEY` (and optionally the referer/title vars)
+| Pulumi config | Secret Manager ID | Cloud Run env |
+|---------------|-------------------|---------------|
+| `openrouterApiKey` (secret) | `openrouter-api-key` | `OPENROUTER_API_KEY` |
+| `webAuthPassword` (secret) | `web-auth-password` | `WEB_AUTH_PASSWORD` |
+| (auto) | `database-url` | `DATABASE_URL` |
 
-Inject them as environment variables into the workflow job prior to tests or deployments.
+GitHub Actions (`.github/workflows/deploy-cloud-run.yml`) mounts these on each deploy. Set values with:
+
+```bash
+cd infra && pulumi config set --secret webAuthPassword "..."
+pulumi up
+```
+
+Twilio auth token (`twilio-auth-token`) may be created manually or added to Pulumi later.
+
+For GitHub Actions deploy auth, use repository secret **`GCP_SA_KEY`** (Pulumi output).
 
 ## Storing keys in the application database
 
