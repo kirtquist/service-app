@@ -6,11 +6,26 @@ Structured questions for supply-side contacts, working plumbers, and shop owners
 
 ---
 
+## Primary SME — plumbing supply salesman
+
+The main validation contact is a **salesman who sells plumbing supplies to working plumbers**. He is not the end user, but he is valuable for:
+
+- Introducing working plumbers / shop owners for demos
+- How shops **actually** track parts and close out jobs (what he hears from customers)
+- **Distributor catalogs and price sheets** — part numbers, list prices, common SKUs, how counter staff vs field techs refer to the same item
+
+**Ask early:** Can he share a **sample price sheet or catalog export** (CSV, PDF, or portal screenshot — redacted pricing OK initially)? Even column headers and example rows help us design import and matching.
+
+See **section F** below for catalog-specific questions tailored to a supply rep.
+
+---
+
 ## Before the meeting
 
 - Confirm consent if you will save real transcripts or quotes.
 - Have WhatsApp sandbox or `/app/invoices/new` ready for a live demo.
 - Note whether they use **QuickBooks Online** or **Desktop** — integration path differs.
+- If meeting the supply salesman: ask whether he can bring or send a **catalog sample** before or after the call.
 
 ---
 
@@ -73,7 +88,7 @@ Copy per session:
 ```
 Date:
 Shop / contact name:
-Role (owner / tech / bookkeeper / supplier contact):
+Role (owner / tech / bookkeeper / supplier rep / salesman):
 QuickBooks: Online / Desktop / Other: ___
 How they invoice today:
 Parts tracking method:
@@ -81,6 +96,7 @@ End-of-job vs ongoing notes:
 Reaction to WhatsApp demo:
 Reaction to web review / approve:
 Reaction to “add from note” concept:
+Catalog / price sheet available: Y / N / follow-up
 Key quotes:
 Follow-ups:
 Consent to save transcript: Y / N
@@ -88,8 +104,49 @@ Consent to save transcript: Y / N
 
 ---
 
+## F. Catalog & price sheet (supply salesman / distributor)
+
+Use with the **plumbing supply salesman** or anyone who can speak to distributor data.
+
+### What they can provide
+
+- Sample **price sheet or catalog export** (CSV, Excel, PDF, ERP extract)
+- Typical **column layout**: SKU, description, list price, unit, category, manufacturer
+- Whether shops get **contract / jobber pricing** vs list (we may need shop-specific sheets later)
+
+### How parts are identified in the field vs at the counter
+
+- Do techs say **part numbers**, **short names** (“P-trap”, “3/4 elbow”), or **full catalog descriptions**?
+- What do counter staff type when a tech calls in an order?
+- Common **aliases** or regional terms for the same SKU?
+- Items that are **never** on the sheet (consumables, markup-only “misc parts”)?
+
+### Pricing rules
+
+- List price from sheet, or **cost plus markup**?
+- Who maintains the sheet — shop owner, office, bookkeeper?
+- How often does pricing change? Multiple suppliers per shop?
+
+### Matching expectations (validate product direction)
+
+Explain the gap today: *“Tech texts ‘P-trap’ — app must map that to the right row on the price sheet.”*
+
+- Is **SKU / part number** the reliable key, or **description search**?
+- Would **“Did you mean this SKU?”** on the review screen be acceptable when match is uncertain?
+- Would they trust auto-pricing only when confidence is high?
+
+### Follow-up artifacts to request
+
+- [ ] Redacted catalog sample (10–50 rows is enough to start)
+- [ ] List of **top 20 SKUs** on a typical residential service truck
+- [ ] Intro to **one shop owner** willing to try WhatsApp + web review demo
+
+---
+
 ## After the meeting
 
 - Update [`VISION.md`](VISION.md) open questions or revision log with learnings.
 - Tune demo prompts in [`SME_DEMO_PROMPTS.md`](SME_DEMO_PROMPTS.md) if new job types surfaced.
+- If catalog sample received: note column names and whether SKU-first or alias-first matching fits.
 - Decide whether to prioritize **WhatsApp append**, **web add-from-note**, or **end-of-job only** for the next build.
+- Decide next catalog step: **CSV import prototype** vs more alias keys in demo `catalog.py`.

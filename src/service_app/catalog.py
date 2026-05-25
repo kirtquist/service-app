@@ -1,19 +1,26 @@
 """
-Sample price catalog — **electrician-skewed** mock data for development.
+Sample price catalog for plumbing SME demos.
 
-Trade focus for this MVP branch is plumbing first; swap keys/values toward
-pipes, fittings, and fixture SKUs while keeping the same lookup shape.
+Keys are lowercase. `lookup_item_price()` lowercases the search term.
+Include aliases (e.g. "p-trap") alongside long distributor descriptions.
+Not every demo prompt part is listed — intentional, to show $0 when unknown.
 """
 
-
-# Mock database of prices and rates (electrician placeholders)
+# Mock database of prices and rates (plumber demo subset)
 PRICE_DATABASE: dict[str, float] = {
     "labor_rate": 95.00,  # per hour — adjust per trade/region
-    "12-2 romex wire": 0.60,  # per foot
+    # Kitchen leak prompt — p-trap priced; compression fittings intentionally omitted
+    "p-trap": 13.72,
+    "charlotte pipe 2 in. abs dwv p-trap w/ solvent weld joint": 13.72,
+    # Water heater prompt — expansion tank priced; copper fittings omitted
+    "expansion tank": 45.00,
+    # Shower valve prompt
+    "shower valve cartridge": 28.00,
+    # Legacy electrician placeholders (unused in plumber demos)
+    "12-2 romex wire": 0.60,
     "single-pole switch": 4.50,
-    "pvc valve": 12.00,  # overlaps with plumbing; useful for demos
+    "pvc valve": 12.00,
     "gfci outlet": 18.00,
-    "Charlotte Pipe 2 in. ABS DWV P-Trap w/ Solvent Weld Joint": 13.72 
 }
 
 

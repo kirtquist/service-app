@@ -31,9 +31,11 @@ Most owners and technicians are **not “computer people.”** They need somethi
 |---------|------|--------|
 | **Owner / lead tech** | Runs jobs, approves what gets billed | Fast capture in the field; simple review and approve at home |
 | **Office / bookkeeper** | QuickBooks, taxes, AR | Clean invoice data in QuickBooks without manual entry |
-| **Supply-side contacts** | Distributors, reps (validation channel) | Insight into real workflows, pricing habits, pain points |
+| **Supply-side contacts** | Distributors, reps (validation channel) | Insight into real workflows, pricing habits, pain points; may provide **price sheets / SKU catalogs** |
 
 **Initial vertical:** plumbing. Sample catalog data in the repo is electrician-flavored placeholder only.
+
+**Primary SME channel:** a **plumbing supply salesman** who sells to working plumbers — strong validation path for workflows *and* real-world catalog data (distributor price lists, part numbers, how reps describe SKUs vs how techs say them on site).
 
 **Go-to-market:** TBD (SaaS, per-shop licensing, etc.). Early focus is **one shop, one login, real jobs** — prove the workflow before multi-tenant complexity.
 
@@ -113,9 +115,9 @@ Other systems (Xero, FreshBooks) are out of scope until QBO path is proven.
 
 ## Validation & SME input
 
-Planned conversations with plumbing SMEs — including contacts through a friend who **sells plumbing supplies** and knows many working plumbers.
+Planned conversations with plumbing SMEs — including a **plumbing supply salesman** (primary contact) who sells to many working plumbers and may have **distributor catalogs or price sheets**.
 
-**Interview guide:** [`SME_INTERVIEW.md`](SME_INTERVIEW.md) — parts tracking, capture timing, and concepts to validate (including future “add from note” on web).
+**Interview guide:** [`SME_INTERVIEW.md`](SME_INTERVIEW.md) — parts tracking, capture timing, catalog/pricing questions, and concepts to validate (including future “add from note” on web).
 
 **Questions to explore**
 
@@ -146,6 +148,32 @@ Aligned with [`FEATURE_OVERVIEW.md`](FEATURE_OVERVIEW.md):
 | **Hosting** | GCP **Cloud Run** for demos | Webhook + API; scale-to-zero, low cost |
 | **Secrets** | Env locally; **Secret Manager** on GCP | No raw keys in app DB |
 | **Integrations** | Export first, then QBO API | After approval workflow validated |
+
+---
+
+## Catalog & pricing (current → real price sheet)
+
+**Today:** in-memory dict in [`catalog.py`](../src/service_app/catalog.py) with exact key lookup (`name.lower()`). Demo-only — e.g. a tech saying *“P-trap”* will **not** match a long distributor SKU like *“Charlotte Pipe 2 in. ABS DWV P-Trap…”* unless we add aliases or smarter matching.
+
+**When we have a plumber’s price sheet** (likely via supply-side SME or pilot shop), move to DB-backed catalog and **tiered matching** — stop at first confident hit; never silently guess wrong prices on approve.
+
+| Tier | Method | Use when |
+|------|--------|----------|
+| **A** | Exact match on normalized name or **SKU / part #** | Sheet has codes techs or counter staff actually use |
+| **B** | **Alias table** (manual + SME-driven) | “P-trap”, “comp fitting”, regional nicknames → canonical SKU |
+| **C** | Fuzzy string match (e.g. rapidfuzz) | Typos, partial descriptions |
+| **D** | LLM pick from top-N candidates | Several close SKUs; disambiguate in context |
+| **E** | Embeddings | Very large catalogs only — defer until A–D insufficient |
+
+**Normalization (both catalog and parsed part names):** lowercase, trim, collapse whitespace; strip quantity from name (parse already separates qty); normalize units (`3/4"` → `3/4 in`). Store a `normalized_name` on catalog rows for indexed lookup.
+
+**Confidence & review:** high confidence → auto-fill unit price on parse; low confidence → “Did you mean …?” on invoice detail; no match → $0 / flag for owner (current behavior). Fits the approval-layer model.
+
+**Likely data model:** `catalog_item` (sku, description, unit, price, supplier, normalized_name), `catalog_alias` (alias → sku), optional match metadata on invoice lines.
+
+**Import path:** CSV from distributor or shop price sheet first; refine after SME interviews. See supply-side questions in [`SME_INTERVIEW.md`](SME_INTERVIEW.md).
+
+**Build sequence:** CSV import → normalize + aliases → fuzzy top-3 → LLM disambiguation only when ambiguous.
 
 ---
 
@@ -211,7 +239,7 @@ See [`PHASE_2.md`](PHASE_2.md).
 
 - WhatsApp **voice** notes (STT pipeline)
 - Photos / attachments
-- Smarter catalog and regional pricing
+- Smarter catalog and regional pricing (see **Catalog & pricing** above)
 - SaaS / multi-tenant if validated
 
 ---
@@ -272,7 +300,8 @@ Use this as the working task list until the WhatsApp demo is live.
 - [ ] Compliance / retention requirements for invoices by state
 - [ ] Brand name and trade-specific marketing (plumbing-only vs multi-trade later)
 - [ ] WhatsApp: Twilio sandbox vs Meta Cloud API for first pilot
-- [ ] WhatsApp Business number ownership (your brand vs test sandbox)
+- [ ] Catalog matching: SKU-first vs description-first for this market?
+- [ ] Can a supply partner provide a sample price sheet (redacted OK) for import prototyping?
 
 ---
 
@@ -284,3 +313,4 @@ Use this as the working task list until the WhatsApp demo is live.
 | 2026-05-22 | Demo strategy — WhatsApp + Cloud Run in Phase 1a; Phase 1b web approval; Phase 1a checklist |
 | 2026-05-22 | Dockerfile, GitHub Actions deploy to Cloud Run (`kgs-service-app`); [`GCP_DEPLOY.md`](GCP_DEPLOY.md) |
 | 2026-05-23 | Phase 2 — Cloud SQL Postgres (Pulumi), CSV/PDF export for approved invoices |
+| 2026-05-25 | Catalog matching strategy; supply-side SME (plumbing salesman) as catalog/pricing source |
