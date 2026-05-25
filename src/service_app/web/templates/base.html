@@ -91,8 +91,15 @@
 </head>
 <body>
   <header>
-    <h1>Service App</h1>
-    <p>Review and approve job invoices</p>
+    <div class="row" style="justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h1>Service App</h1>
+        <p>Review and approve job invoices</p>
+      </div>
+      {% block header_actions %}
+      <a class="btn btn-secondary" href="/app/logout" style="margin-top: 0.15rem;">Log out</a>
+      {% endblock %}
+    </div>
   </header>
   <main>
     {% block content %}{% endblock %}

@@ -42,3 +42,5 @@ See [`PHASE_2.md`](PHASE_2.md) for architecture and deploy steps.
 ## Next steps
 
 **Phase 3:** QuickBooks Online OAuth and one-way invoice sync. See [`VISION.md`](VISION.md).
+
+**SME validation (pre-Phase 3):** [`SME_INTERVIEW.md`](SME_INTERVIEW.md) — local test checklist: [`PRE_PHASE3_TEST_PLAN.md`](PRE_PHASE3_TEST_PLAN.md).

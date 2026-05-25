@@ -115,6 +115,8 @@ Other systems (Xero, FreshBooks) are out of scope until QBO path is proven.
 
 Planned conversations with plumbing SMEs — including contacts through a friend who **sells plumbing supplies** and knows many working plumbers.
 
+**Interview guide:** [`SME_INTERVIEW.md`](SME_INTERVIEW.md) — parts tracking, capture timing, and concepts to validate (including future “add from note” on web).
+
 **Questions to explore**
 
 - How do they quote and invoice today (paper, QB, text, Square)?
@@ -123,6 +125,7 @@ Planned conversations with plumbing SMEs — including contacts through a friend
 - Would they trust AI-drafted line items if review is one screen away?
 - QuickBooks Online vs Desktop split in that market?
 - Price sensitivity and who pays (owner vs shop) for a tool like this.
+- When several parts were missed at review time: manual line-by-line vs paste a short list for AI to add (see SME guide).
 
 Capture learnings in this doc or linked interview notes as meetings happen.
 

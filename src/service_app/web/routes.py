@@ -36,6 +36,20 @@ def app_root() -> RedirectResponse:
     return RedirectResponse(url="/app/invoices", status_code=302)
 
 
+@router.get("/logout", response_class=RedirectResponse)
+def logout(request: Request) -> RedirectResponse:
+    """Clear HTTP Basic credentials in the browser, then show logged-out page."""
+    host = request.headers.get("host", "localhost")
+    scheme = request.url.scheme
+    reset_url = f"{scheme}://logout:logout@{host}/app/logged-out"
+    return RedirectResponse(url=reset_url, status_code=302)
+
+
+@router.get("/logged-out", response_class=HTMLResponse)
+def logged_out(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(request, "logged_out.html", {})
+
+
 @router.get("/invoices", response_class=HTMLResponse, dependencies=[Depends(require_web_auth)])
 def invoice_list(
     request: Request,

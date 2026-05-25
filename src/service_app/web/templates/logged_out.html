@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Logged out — Service App{% endblock %}
+{% block header_actions %}{% endblock %}
+{% block content %}
+<div class="card">
+  <h2 style="margin-top:0;">You are logged out</h2>
+  <p class="muted" style="margin-bottom: 1rem;">
+    Your browser session for this site has been cleared. Sign in again to review invoices.
+  </p>
+  <a class="btn" href="/app/invoices">Sign in again</a>
+</div>
+{% endblock %}
