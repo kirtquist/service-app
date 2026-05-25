@@ -13,8 +13,7 @@ PRICE_DATABASE: dict[str, float] = {
     "single-pole switch": 4.50,
     "pvc valve": 12.00,  # overlaps with plumbing; useful for demos
     "gfci outlet": 18.00,
-    "Charlotte Pipe
-2 in. ABS DWV P-Trap w/ Solvent Weld Joint": 13.72 
+    "Charlotte Pipe 2 in. ABS DWV P-Trap w/ Solvent Weld Joint": 13.72 
 }
 
 
