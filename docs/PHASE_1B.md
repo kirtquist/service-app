@@ -15,10 +15,22 @@ Browser UI for trade shop owners to **review, edit, and approve** invoices creat
 | View / edit lines, labor, customer | `GET /app/invoices/{id}` |
 | Approve | `POST /app/invoices/{id}/approve` |
 | Change status | `POST /app/invoices/{id}/status` |
+| Log out | `GET /app/logout` → `GET /app/logged-out` |
 
 **Statuses:** `draft` → `pending_review` → `approved`
 
 WhatsApp messages automatically create **`pending_review`** invoices and include a review link in the reply.
+
+---
+
+## Workflow
+
+| Stage | What happens | Pricing |
+|-------|----------------|---------|
+| **Field** | One WhatsApp message or paste at `/app/invoices/new` per job close-out | AI parse + catalog lookup for recognized parts |
+| **Home** | Review invoice, edit lines/labor, **add missing parts**, approve | Manual **Add line** — enter unit price yourself (no auto lookup) |
+
+If the tech forgot fittings, the owner adds them on the invoice detail page before approving. A future **“add from note”** feature (parse a short list into the invoice) is documented for SME validation — see [`SME_INTERVIEW.md`](SME_INTERVIEW.md).
 
 ---
 
@@ -39,6 +51,8 @@ pulumi up
 If `webAuthPassword` is not set in Pulumi, the web UI remains open (dev only).
 
 After `pulumi up`, push to `dev`/`main` (or re-run the deploy workflow) so Cloud Run mounts the secret.
+
+**Log out:** Use **Log out** in the header. HTTP Basic auth has no server session — logout clears cached browser credentials and shows a confirmation page.
 
 ---
 
@@ -81,8 +95,8 @@ open http://127.0.0.1:8090/app/invoices
 
 ## Next (Phase 2)
 
-- CSV / PDF export for QuickBooks
-- Cloud SQL for durable storage
-- Multi-tenant auth
+See [`PHASE_2.md`](PHASE_2.md) for Cloud SQL, CSV/PDF export, and production database setup.
+
+**SME interviews:** [`SME_INTERVIEW.md`](SME_INTERVIEW.md)
 
 See [`VISION.md`](VISION.md).

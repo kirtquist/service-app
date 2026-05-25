@@ -59,6 +59,7 @@
 
   <form method="post" action="/app/invoices/{{ invoice.id }}/lines/add" class="stack" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
     <h4 style="margin:0;">Add line</h4>
+    <p class="muted" style="margin:0;">Missing a part the tech didn&rsquo;t mention? Add it here before approving. Enter the unit price manually.</p>
     <div class="row">
       <input name="name" placeholder="Part name" required style="flex:2;">
       <input name="quantity" type="number" step="0.01" min="0.01" value="1" required style="width:5rem;">
