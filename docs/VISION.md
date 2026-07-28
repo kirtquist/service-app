@@ -242,6 +242,11 @@ See [`PHASE_2.md`](PHASE_2.md).
 - Smarter catalog and regional pricing (see **Catalog & pricing** above)
 - SaaS / multi-tenant if validated
 
+### Phase 4+ — AI assistant (optional)
+
+- Read-only then confirmed-write assistant over existing invoice data — see [`AI_ASSISTANT.md`](AI_ASSISTANT.md)
+- **No graph DB rewrite** planned; optional `pgvector` in Postgres for semantic job search
+
 ---
 
 ## Phase 1a — checklist (get started)
