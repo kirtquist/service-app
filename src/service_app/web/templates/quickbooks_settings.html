@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}QuickBooks — Service App{% endblock %}
+{% block content %}
+<a class="btn btn-secondary" href="/app/invoices" style="margin-bottom: 1rem;">← All invoices</a>
+
+<div class="card">
+  <h2 style="margin-top:0;">QuickBooks Online</h2>
+  <p class="muted" style="margin-top:0;">
+    Connect your QuickBooks company so approved invoices can sync automatically (Phase 3).
+  </p>
+
+  {% if error_message %}
+  <p style="color:#b3261e; margin: 1rem 0;">{{ error_message }}</p>
+  {% endif %}
+
+  {% if success_message %}
+  <p style="color:var(--ok); margin: 1rem 0;">QuickBooks connected successfully.</p>
+  {% endif %}
+
+  <dl class="stack" style="margin: 1rem 0;">
+    <div>
+      <dt class="muted" style="font-weight:600;">App credentials</dt>
+      <dd style="margin:0.25rem 0 0;">
+        {% if configured %}Configured{% else %}Not configured — set INTUIT_CLIENT_ID and INTUIT_CLIENT_SECRET{% endif %}
+      </dd>
+    </div>
+    <div>
+      <dt class="muted" style="font-weight:600;">Environment</dt>
+      <dd style="margin:0.25rem 0 0;">{{ environment }}</dd>
+    </div>
+    <div>
+      <dt class="muted" style="font-weight:600;">Redirect URI (register in Intuit Developer)</dt>
+      <dd style="margin:0.25rem 0 0; word-break: break-all;"><code>{{ redirect_uri or "Set PUBLIC_BASE_URL or INTUIT_REDIRECT_URI" }}</code></dd>
+    </div>
+    <div>
+      <dt class="muted" style="font-weight:600;">Connection</dt>
+      <dd style="margin:0.25rem 0 0;">
+        {% if connected %}
+          Connected{% if company_name %} to <strong>{{ company_name }}</strong>{% endif %}
+          {% if connection %} (realm {{ connection.realm_id }}){% endif %}
+        {% else %}
+          Not connected
+        {% endif %}
+      </dd>
+    </div>
+  </dl>
+
+  <div class="row">
+    {% if configured and not connected %}
+    <a class="btn" href="/app/integrations/quickbooks/connect">Connect QuickBooks</a>
+    {% endif %}
+    {% if connected %}
+    <form method="post" action="/app/integrations/quickbooks/disconnect">
+      <button class="btn btn-secondary" type="submit">Disconnect</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if connected %}
+<div class="card">
+  <h3 style="margin-top:0;">Next step</h3>
+  <p class="muted" style="margin:0;">
+    OAuth is working. Invoice push to QuickBooks will use this connection on approved invoices.
+  </p>
+</div>
+{% endif %}
+{% endblock %}

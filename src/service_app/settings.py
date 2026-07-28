@@ -82,6 +82,34 @@ class Settings(BaseSettings):
         description="HTTP Basic password for /app web UI (single shop MVP).",
     )
 
+    # QuickBooks Online — Phase 3 OAuth (client credentials in env / Secret Manager)
+    intuit_client_id: str | None = Field(default=None, alias="INTUIT_CLIENT_ID")
+    intuit_client_secret: str | None = Field(default=None, alias="INTUIT_CLIENT_SECRET")
+    intuit_redirect_uri: str | None = Field(
+        default=None,
+        alias="INTUIT_REDIRECT_URI",
+        description="OAuth redirect URI registered in Intuit Developer portal.",
+    )
+    intuit_environment: str = Field(
+        default="sandbox",
+        alias="INTUIT_ENVIRONMENT",
+        description="sandbox or production",
+    )
+
+    def resolve_intuit_redirect_uri(self) -> str | None:
+        if self.intuit_redirect_uri:
+            return self.intuit_redirect_uri.rstrip("/")
+        if self.public_base_url:
+            return f"{self.public_base_url.rstrip('/')}/app/integrations/quickbooks/callback"
+        return None
+
+    def is_qbo_configured(self) -> bool:
+        return bool(
+            self.intuit_client_id
+            and self.intuit_client_secret
+            and self.resolve_intuit_redirect_uri()
+        )
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

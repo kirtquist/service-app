@@ -15,6 +15,7 @@ from service_app.pricing import parse_transcript
 from service_app.schemas import ParseRequest, ParseResponse
 from service_app.settings import get_settings
 from service_app.web.routes import router as web_router
+from service_app.web.qbo_routes import router as qbo_router
 from service_app.whatsapp import meta as meta_whatsapp
 from service_app.whatsapp import twilio_handler
 from service_app.whatsapp.reply import format_error_reply, format_job_reply
@@ -36,6 +37,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.include_router(web_router)
+app.include_router(qbo_router)
 
 
 def _save_parsed_invoice(parsed: ParseResponse, *, transcript: str, channel: str) -> int | None:

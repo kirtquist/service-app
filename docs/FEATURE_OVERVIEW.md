@@ -8,7 +8,7 @@ Technical snapshot of what exists in the repo today and what comes next. Product
 - **Near-term workflows**:
   - Capture technician narration → parse → price → **approve in browser** (Phase 1b ✅)
   - **Export** approved invoices as CSV (QuickBooks) or PDF (Phase 2 ✅)
-  - QuickBooks Online API sync (Phase 3)
+  - QuickBooks Online OAuth connect (Phase 3 — in progress)
 
 ## What works today
 
@@ -29,7 +29,7 @@ Technical snapshot of what exists in the repo today and what comes next. Product
 | Database | SQLite local; **Cloud SQL Postgres** prod (Pulumi) | Alembic migrations |
 | API / hosting | FastAPI on Cloud Run | — |
 | WhatsApp | Twilio + Meta webhooks; saves invoices | Voice notes |
-| Web UI | List, edit, approve, export | Phase 3 QBO connect |
+| Web UI | List, edit, approve, export | QBO connect ✅; invoice sync 🔜 |
 | Bookkeeping | CSV + PDF export | QuickBooks Online API |
 
 ## Database
@@ -41,6 +41,6 @@ See [`PHASE_2.md`](PHASE_2.md) for architecture and deploy steps.
 
 ## Next steps
 
-**Phase 3:** QuickBooks Online OAuth and one-way invoice sync. See [`VISION.md`](VISION.md).
+**Phase 3 (in progress):** QuickBooks Online OAuth connect — [`PHASE_3.md`](PHASE_3.md). Invoice push to QBO is next.
 
 **SME validation (pre-Phase 3):** [`SME_INTERVIEW.md`](SME_INTERVIEW.md) — local test checklist: [`PRE_PHASE3_TEST_PLAN.md`](PRE_PHASE3_TEST_PLAN.md).
