@@ -31,6 +31,7 @@ Technical snapshot of what exists in the repo today and what comes next. Product
 | WhatsApp | Twilio + Meta webhooks; saves invoices | Voice notes |
 | Web UI | List, edit, approve, export | QBO connect ✅; invoice sync 🔜 |
 | Bookkeeping | CSV + PDF export | QuickBooks Online API |
+| AI assistant | — | Read-only chat tools (Phase 4+) — [`AI_ASSISTANT.md`](AI_ASSISTANT.md) |
 
 ## Database
 
@@ -44,3 +45,5 @@ See [`PHASE_2.md`](PHASE_2.md) for architecture and deploy steps.
 **Phase 3 (in progress):** QuickBooks Online OAuth connect — [`PHASE_3.md`](PHASE_3.md). Invoice push to QBO is next.
 
 **SME validation (pre-Phase 3):** [`SME_INTERVIEW.md`](SME_INTERVIEW.md) — local test checklist: [`PRE_PHASE3_TEST_PLAN.md`](PRE_PHASE3_TEST_PLAN.md).
+
+**Future (Phase 4+):** Minimal AI assistant on existing Postgres models — [`AI_ASSISTANT.md`](AI_ASSISTANT.md) (graph DB not planned).

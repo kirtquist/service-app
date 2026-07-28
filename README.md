@@ -91,6 +91,7 @@ PYTHONPATH=src python app.py   # works without install; prefer pip install -e .
 - [`docs/PHASE_1B.md`](docs/PHASE_1B.md) — web invoice list, edit, and approve.
 - [`docs/PHASE_2.md`](docs/PHASE_2.md) — Cloud SQL Postgres and CSV/PDF export.
 - [`docs/PHASE_3.md`](docs/PHASE_3.md) — QuickBooks Online OAuth connect and credential storage.
+- [`docs/AI_ASSISTANT.md`](docs/AI_ASSISTANT.md) — future minimal AI assistant layer (no graph DB).
 - [`docs/SME_DEMO_PROMPTS.md`](docs/SME_DEMO_PROMPTS.md) — plumber-style test messages for demos.
 - [`infra/README.md`](infra/README.md) — Pulumi stack for GCP foundation (recommended one-time setup).
 - [`docs/API_KEYS.md`](docs/API_KEYS.md) — how keys are supplied now and where to plug a vault later.
