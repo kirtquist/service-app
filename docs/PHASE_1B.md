@@ -48,6 +48,16 @@ pulumi up
 - **Username:** `pulumi config get webAuthUsername` (default `admin`) — synced to Cloud Run as `WEB_AUTH_USERNAME` via GitHub Actions deploy.
 - **Password:** Secret Manager `web-auth-password` → Cloud Run env `WEB_AUTH_PASSWORD`.
 
+Retrieve the current password from the CLI:
+
+```bash
+gcloud secrets versions access latest \
+  --secret=web-auth-password \
+  --project=kgs-service-app
+```
+
+See also [`API_KEYS.md`](API_KEYS.md) for other Secret Manager commands.
+
 If `webAuthPassword` is not set in Pulumi, the web UI remains open (dev only).
 
 After `pulumi up`, push to `dev`/`main` (or re-run the deploy workflow) so Cloud Run mounts the secret.

@@ -43,6 +43,9 @@ class Invoice(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+    qbo_external_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    qbo_sync_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    qbo_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     lines: Mapped[list[InvoiceLine]] = relationship(
         back_populates="invoice",
@@ -63,3 +66,29 @@ class InvoiceLine(Base):
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     invoice: Mapped[Invoice] = relationship(back_populates="lines")
+
+
+class QuickBooksConnection(Base):
+    """OAuth tokens for the connected QuickBooks Online company (single-shop MVP)."""
+
+    __tablename__ = "quickbooks_connections"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    realm_id: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    access_token: Mapped[str] = mapped_column(Text, nullable=False)
+    refresh_token: Mapped[str] = mapped_column(Text, nullable=False)
+    access_token_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    refresh_token_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )

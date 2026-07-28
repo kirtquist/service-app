@@ -1,6 +1,6 @@
 # API keys — OpenRouter and beyond
 
-Service credentials (OpenRouter, future QuickBooks OAuth client secrets) belong in environment or a vault — **not** in the application database. See also [`VISION.md`](VISION.md) for product context.
+Service credentials (OpenRouter, QuickBooks OAuth client ID/secret) belong in environment or a vault — **not** in the application database. OAuth **access/refresh tokens** after a shop connects are stored in Postgres/SQLite — see [`PHASE_3.md`](PHASE_3.md). See also [`VISION.md`](VISION.md) for product context.
 
 ## Local development
 
@@ -23,6 +23,8 @@ Do **not** commit `.env`. Production secrets live in **GCP Secret Manager**, pro
 |---------------|-------------------|---------------|
 | `openrouterApiKey` (secret) | `openrouter-api-key` | `OPENROUTER_API_KEY` |
 | `webAuthPassword` (secret) | `web-auth-password` | `WEB_AUTH_PASSWORD` |
+| (manual / Pulumi later) | `intuit-client-id` | `INTUIT_CLIENT_ID` |
+| (manual / Pulumi later) | `intuit-client-secret` | `INTUIT_CLIENT_SECRET` |
 | (auto) | `database-url` | `DATABASE_URL` |
 
 GitHub Actions (`.github/workflows/deploy-cloud-run.yml`) mounts these on each deploy. Set values with:
@@ -34,7 +36,31 @@ pulumi up
 
 Twilio auth token (`twilio-auth-token`) may be created manually or added to Pulumi later.
 
+QuickBooks client ID/secret: create manually in Secret Manager — see [`PHASE_3.md`](PHASE_3.md).
+
 For GitHub Actions deploy auth, use repository secret **`GCP_SA_KEY`** (Pulumi output).
+
+## Retrieve secrets from the command line
+
+After `pulumi up`, read the latest version from Secret Manager (requires `gcloud` auth and secret accessor permission):
+
+**Web UI password** (`WEB_AUTH_PASSWORD` on Cloud Run):
+
+```bash
+gcloud secrets versions access latest \
+  --secret=web-auth-password \
+  --project=kgs-service-app
+```
+
+**OpenRouter API key:**
+
+```bash
+gcloud secrets versions access latest \
+  --secret=openrouter-api-key \
+  --project=kgs-service-app
+```
+
+Do not paste these into chat logs or commit them. Prefer `pulumi config get` for non-secret config (e.g. `webAuthUsername`).
 
 ## Storing keys in the application database
 

@@ -1,0 +1,37 @@
+---
+description: GitHub issue, branch, PR, merge, and verification workflow when publishing changes
+alwaysApply: true
+---
+
+# GitHub publishing workflow
+
+When Kirt asks to publish completed code changes to a GitHub repository, use an issue → branch → commit → pull request → merge → verify → resolve workflow for meaningful changes unless he explicitly requests a different process. Scale the process down for trivial changes, and do not create ceremonial issues that provide no durable tracking value.
+
+## When to create an issue
+
+- Create an issue for bugs, features, operational incidents, behavior changes, risky work, or work that benefits from acceptance criteria and a durable decision trail.
+- An issue is usually unnecessary for trivial documentation, formatting, typo, generated-file, dependency-lock, or housekeeping-only changes unless Kirt requests one.
+- Create the issue before implementation when practical. For urgent fixes or work already completed, a retrospective tracking issue is acceptable when it clearly records that exception.
+
+## Labels
+
+- Inspect the repository's existing labels before labeling an issue or pull request.
+- Apply the smallest useful set of existing labels that describe the work, such as type (`bug`, `enhancement`, `documentation`, `maintenance`), affected area, and priority when the repository uses those categories.
+- Do not guess severity, priority, security impact, or release scope. Apply those labels only when supported by evidence or explicitly requested.
+- Reuse the repository's established taxonomy. Do not create, rename, or reorganize labels without Kirt's approval.
+
+## Publishing workflow
+
+1. Verify the intended changes, relevant tests, current branch, default branch, remote, and working-tree state.
+2. For meaningful work, create or identify the tracking issue and record the problem, acceptance criteria, relevant implementation summary, and verification plan. Apply appropriate existing labels.
+3. Commit with a descriptive subject and useful body. Reference the issue when practical.
+4. Push the working branch. For substantive or risky changes, prefer a feature branch and pull request into the default branch. Push directly to the default branch only when Kirt explicitly requests it or has clearly established that workflow for the repository and branch protections permit it.
+5. Keep the issue focused on the problem and acceptance criteria; keep implementation details and code review in the pull request. Use `Closes #123` in the pull request description when automatic closure after merge is appropriate, rather than in an intermediate commit.
+6. Merge only after required checks pass and material warnings or exceptions are resolved or explicitly documented.
+7. Verify the change is present on the remote default branch and perform relevant deployment, runtime, or smoke checks when they are part of the task.
+8. Add a resolution comment linking the commit or merged pull request and summarizing verification. Close the issue as completed only after merge and required verification succeed.
+9. Verify the issue state, remote default branch, local/remote synchronization, and working-tree state.
+
+Report the issue, labels, commit, pull request when applicable, test and runtime verification, target branch, merge/closure state, and final synchronization state with clickable GitHub links.
+
+Never push, merge, or close an issue when required tests have failed or material warnings remain unless Kirt explicitly accepts the exception and it is clearly documented.
