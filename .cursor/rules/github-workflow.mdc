@@ -13,6 +13,20 @@ When Kirt asks to publish completed code changes to a GitHub repository, use an 
 - An issue is usually unnecessary for trivial documentation, formatting, typo, generated-file, dependency-lock, or housekeeping-only changes unless Kirt requests one.
 - Create the issue before implementation when practical. For urgent fixes or work already completed, a retrospective tracking issue is acceptable when it clearly records that exception.
 
+## Issue content
+
+Every tracking issue should start with a **Summary** section: one or two plain-language sentences a human can skim weeks later to remember what the issue is for and why it matters. Avoid titles-only issues with no context.
+
+Suggested structure:
+
+1. **Summary** — who cares, what outcome, why now (human-readable, not jargon-heavy).
+2. **Problem / context** — what exists today and what gap remains.
+3. **Acceptance criteria** — checkbox list of testable done conditions.
+4. **Verification plan** — tests, manual steps, or deploy checks.
+5. **References** — links to relevant docs in the repo (e.g. `docs/PHASE_3.md`).
+
+Keep the issue focused on outcomes; leave implementation detail and code review discussion for the pull request.
+
 ## Labels
 
 - Inspect the repository's existing labels before labeling an issue or pull request.
