@@ -24,6 +24,13 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _as_utc(dt: datetime) -> datetime:
+    """Normalize DB datetimes — SQLite returns naive values for timezone=True columns."""
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 def _expires_at(seconds: int) -> datetime:
     return _utcnow() + timedelta(seconds=seconds)
 
@@ -76,7 +83,8 @@ def save_connection_tokens(
 
 
 def _needs_refresh(connection: QuickBooksConnection, *, skew_seconds: int = 120) -> bool:
-    return connection.access_token_expires_at <= _utcnow() + timedelta(seconds=skew_seconds)
+    expires_at = _as_utc(connection.access_token_expires_at)
+    return expires_at <= _utcnow() + timedelta(seconds=skew_seconds)
 
 
 def refresh_connection_tokens(

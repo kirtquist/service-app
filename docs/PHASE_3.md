@@ -1,6 +1,6 @@
 # Phase 3 — QuickBooks Online integration
 
-OAuth connect framework for pushing approved invoices to QuickBooks Online (QBO). Invoice create/sync mapping is the next build step after connect works.
+OAuth connect and one-click invoice sync to QuickBooks Online (QBO).
 
 **Related:** [`VISION.md`](VISION.md) · [`API_KEYS.md`](API_KEYS.md) · [`PHASE_2.md`](PHASE_2.md)
 
@@ -13,9 +13,10 @@ OAuth connect framework for pushing approved invoices to QuickBooks Online (QBO)
 | Intuit OAuth (connect / callback / disconnect) | ✅ |
 | Token storage in Postgres/SQLite (`quickbooks_connections`) | ✅ |
 | Access token refresh | ✅ |
-| QBO API client scaffold | ✅ |
+| QBO API client | ✅ |
 | Web UI at `/app/integrations/quickbooks` | ✅ |
-| Push approved invoice to QBO | 🔜 next |
+| Push approved invoice to QBO | ✅ |
+| **Send to QuickBooks** on approved invoice detail | ✅ |
 
 ---
 
@@ -120,11 +121,12 @@ Disconnect clears tokens from the database only (Intuit revoke can be added late
 
 ```
 src/service_app/qbo/
-  config.py    # sandbox/production API base URLs
-  oauth.py     # authorization URL, code exchange, refresh
-  service.py   # connection CRUD + token refresh
-  client.py    # QBO REST client
-  sync.py      # invoice push (stub)
+  config.py           # sandbox/production API base URLs
+  oauth.py            # authorization URL, code exchange, refresh
+  service.py          # connection CRUD + token refresh
+  client.py           # QBO REST client
+  invoice_mapping.py  # Invoice → QBO payload, customer/item lookup
+  sync.py             # push approved invoices
 src/service_app/web/qbo_routes.py
 src/service_app/web/templates/quickbooks_settings.html
 ```
@@ -133,15 +135,24 @@ Invoice sync fields on `invoices`: `qbo_external_id`, `qbo_sync_status`, `qbo_sy
 
 ---
 
-## 5. Next implementation step
+## 5. Send invoice to QuickBooks
 
-- Map approved `Invoice` + lines → QBO Invoice API payload (generic Parts/Labor items OK for MVP).
-- Add **Send to QuickBooks** on approved invoice detail page.
-- Handle duplicate sync (idempotent on `qbo_external_id`).
+1. Connect sandbox company at `/app/integrations/quickbooks`.
+2. Approve an invoice on its detail page.
+3. Click **Send to QuickBooks** in the QuickBooks Online section.
+4. On success, the page shows the QBO invoice Id and sync timestamp.
+5. Re-sending is idempotent — if `qbo_external_id` is already set, no duplicate is created.
+
+**Mapping (MVP):**
+
+- Customer: find by `DisplayName` or create in QBO.
+- Line items: labor (if hours > 0) and each parts line as `SalesItemLineDetail` rows.
+- Uses the first Service item in QBO (or any item if none); descriptions carry part/labor text.
+- `DocNumber` = `INV-0001` style from local invoice id.
 
 ---
 
-## Troubleshooting
+## 6. Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
@@ -149,3 +160,5 @@ Invoice sync fields on `invoices`: `qbo_external_id`, `qbo_sync_status`, `qbo_sy
 | Invalid OAuth state | Retry connect; state expires after 10 minutes |
 | Connect works locally but not Cloud Run | Add Cloud Run callback URL to Intuit app; mount secrets on Cloud Run |
 | 401 from QBO API | Token refresh failed — disconnect and reconnect |
+| No items in QBO | Create at least one Service item in the sandbox company |
+| Invoice has no lines | Add labor hours or parts before sending |

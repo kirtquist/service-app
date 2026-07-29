@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
@@ -15,6 +16,9 @@ from service_app.export.csv_export import build_quickbooks_csv, invoice_number
 from service_app.export.pdf_export import build_invoice_pdf
 from service_app.invoices import service as invoice_service
 from service_app.pricing import ParseError, parse_transcript
+from service_app.qbo.service import is_connected
+from service_app.qbo.sync import push_invoice
+from service_app.settings import get_settings
 from service_app.web.auth import require_web_auth
 
 router = APIRouter(prefix="/app", tags=["web"])
@@ -107,6 +111,10 @@ def invoice_detail(
     if invoice is None:
         raise HTTPException(status_code=404, detail="Invoice not found")
 
+    settings = get_settings()
+    qbo_configured = settings.is_qbo_configured()
+    qbo_connected = qbo_configured and is_connected(session)
+
     return templates.TemplateResponse(
         request,
         "invoice_detail.html",
@@ -114,6 +122,11 @@ def invoice_detail(
             "invoice": invoice,
             "status_labels": STATUS_LABELS,
             "statuses": InvoiceStatus,
+            "qbo_configured": qbo_configured,
+            "qbo_connected": qbo_connected,
+            "qbo_success": request.query_params.get("qbo_success"),
+            "qbo_error": request.query_params.get("qbo_error"),
+            "qbo_info": request.query_params.get("qbo_info"),
         },
     )
 
@@ -282,6 +295,38 @@ def export_invoice_csv(
         content=build_quickbooks_csv(invoice),
         media_type="text/csv",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.post(
+    "/invoices/{invoice_id}/quickbooks",
+    dependencies=[Depends(require_web_auth)],
+)
+def send_invoice_to_quickbooks(
+    invoice_id: int,
+    session: Session = Depends(_session_dep),
+) -> RedirectResponse:
+    invoice = _get_invoice_or_404(session, invoice_id)
+    if invoice.status != InvoiceStatus.APPROVED.value:
+        raise HTTPException(status_code=400, detail="Only approved invoices can be sent to QuickBooks.")
+
+    result = push_invoice(session, invoice)
+    base_url = f"/app/invoices/{invoice_id}"
+
+    if result.status == "synced":
+        return RedirectResponse(
+            url=f"{base_url}?qbo_success={quote(result.message)}",
+            status_code=303,
+        )
+    if result.status == "already_synced":
+        return RedirectResponse(
+            url=f"{base_url}?qbo_info={quote(result.message)}",
+            status_code=303,
+        )
+
+    return RedirectResponse(
+        url=f"{base_url}?qbo_error={quote(result.message)}",
+        status_code=303,
     )
 
 

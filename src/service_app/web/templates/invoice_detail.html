@@ -100,6 +100,42 @@
     <a class="btn btn-secondary" href="/app/invoices/{{ invoice.id }}/export.pdf">Download PDF</a>
   </div>
 </div>
+
+<div class="card">
+  <h3 style="margin-top:0;">QuickBooks Online</h3>
+
+  {% if qbo_success %}
+  <p style="color:var(--ok); margin: 0 0 1rem;">{{ qbo_success }}</p>
+  {% endif %}
+  {% if qbo_info %}
+  <p class="muted" style="margin: 0 0 1rem;">{{ qbo_info }}</p>
+  {% endif %}
+  {% if qbo_error %}
+  <p style="color:#b3261e; margin: 0 0 1rem;">{{ qbo_error }}</p>
+  {% endif %}
+
+  {% if invoice.qbo_external_id %}
+  <p style="margin:0 0 1rem;">
+    Synced to QuickBooks invoice <strong>#{{ invoice.qbo_external_id }}</strong>
+    {% if invoice.qbo_synced_at %}
+    on {{ invoice.qbo_synced_at.strftime('%Y-%m-%d %H:%M UTC') }}
+    {% endif %}
+  </p>
+  {% endif %}
+
+  {% if not qbo_configured %}
+  <p class="muted" style="margin:0;">QuickBooks OAuth is not configured on this server.</p>
+  {% elif not qbo_connected %}
+  <p class="muted" style="margin:0 0 1rem;">Connect QuickBooks before sending invoices.</p>
+  <a class="btn btn-secondary" href="/app/integrations/quickbooks">QuickBooks settings</a>
+  {% elif invoice.qbo_external_id %}
+  <p class="muted" style="margin:0;">This invoice was already sent to QuickBooks.</p>
+  {% else %}
+  <form method="post" action="/app/invoices/{{ invoice.id }}/quickbooks">
+    <button class="btn" type="submit">Send to QuickBooks</button>
+  </form>
+  {% endif %}
+</div>
 {% endif %}
 
 {% if invoice.status != statuses.APPROVED.value %}

@@ -151,3 +151,20 @@ def update_invoice_labor(
     session.commit()
     session.refresh(invoice)
     return invoice
+
+
+def update_invoice_qbo_sync(
+    session: Session,
+    invoice: Invoice,
+    *,
+    external_id: str,
+    sync_status: str,
+    synced_at: datetime,
+) -> Invoice:
+    invoice.qbo_external_id = external_id
+    invoice.qbo_sync_status = sync_status
+    invoice.qbo_synced_at = synced_at
+    invoice.updated_at = datetime.now(timezone.utc)
+    session.commit()
+    session.refresh(invoice)
+    return invoice
