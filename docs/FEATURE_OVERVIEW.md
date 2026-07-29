@@ -45,6 +45,6 @@ See [`PHASE_2.md`](PHASE_2.md) for architecture and deploy steps.
 
 **Phase 4 (planned):** QBO catalog mapping (Parts/Labor SKUs), richer line items — see [`VISION.md`](VISION.md).
 
-**SME validation:** [`SME_INTERVIEW.md`](SME_INTERVIEW.md) — local test checklist: [`PRE_PHASE3_TEST_PLAN.md`](PRE_PHASE3_TEST_PLAN.md).
+**SME validation:** [`SME_INTERVIEW.md`](SME_INTERVIEW.md) · [`SME_MEETING_AGENDA.md`](SME_MEETING_AGENDA.md) · local test checklist: [`PRE_PHASE3_TEST_PLAN.md`](PRE_PHASE3_TEST_PLAN.md).
 
 **Future (Phase 4+):** Minimal AI assistant on existing Postgres models — [`AI_ASSISTANT.md`](AI_ASSISTANT.md) (graph DB not planned).

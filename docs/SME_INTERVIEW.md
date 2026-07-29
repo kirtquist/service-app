@@ -2,6 +2,8 @@
 
 Structured questions for supply-side contacts, working plumbers, and shop owners. Use alongside demo prompts in [`SME_DEMO_PROMPTS.md`](SME_DEMO_PROMPTS.md).
 
+**Printable agendas:** [`SME_MEETING_AGENDA.md`](SME_MEETING_AGENDA.md) — 30 min supply-salesman run sheet + 45–60 min shop owner session.
+
 **Product context:** [`VISION.md`](VISION.md)
 
 ---
