@@ -82,18 +82,28 @@ def quickbooks_connect() -> RedirectResponse:
 
 
 @router.get("/callback")
+@router.get("/callback/")
 def quickbooks_callback(
     request: Request,
     session: Session = Depends(_session_dep),
 ) -> RedirectResponse:
     settings = get_settings()
     params = request.query_params
+
+    oauth_error = params.get("error")
+    if oauth_error:
+        description = params.get("error_description") or oauth_error
+        return RedirectResponse(
+            url=f"/app/integrations/quickbooks?error={description}",
+            status_code=303,
+        )
+
     code = params.get("code")
     state = params.get("state")
     realm_id = params.get("realmId")
     if not code or not state or not realm_id:
         return RedirectResponse(
-            url="/app/integrations/quickbooks?error=Missing+OAuth+parameters+from+Intuit.",
+            url="/app/integrations/quickbooks?error=Missing+OAuth+parameters+from+Intuit.+Complete+Connect+QuickBooks+from+the+settings+page.",
             status_code=303,
         )
     if not verify_oauth_state(settings, state):

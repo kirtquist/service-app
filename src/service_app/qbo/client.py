@@ -47,10 +47,16 @@ class QboApiClient:
             response = client.get(url, headers=self._headers(), params=params)
         return self._parse_response(response)
 
-    def post(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
+    def post(
+        self,
+        path: str,
+        payload: dict[str, Any],
+        *,
+        params: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         url = f"{self._base_url}/{path.lstrip('/')}"
         with httpx.Client(timeout=30.0) as client:
-            response = client.post(url, headers=self._headers(), json=payload)
+            response = client.post(url, headers=self._headers(), json=payload, params=params)
         return self._parse_response(response)
 
     @staticmethod
@@ -68,3 +74,9 @@ class QboApiClient:
 
     def query(self, sql: str) -> dict[str, Any]:
         return self.get("query", params={"query": sql, "minorversion": "73"})
+
+    def create_customer(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self.post("customer", payload, params={"minorversion": "73"})
+
+    def create_invoice(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self.post("invoice", payload, params={"minorversion": "73"})
