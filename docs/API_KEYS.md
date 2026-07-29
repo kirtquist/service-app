@@ -23,22 +23,24 @@ Do **not** commit `.env`. Production secrets live in **GCP Secret Manager**, pro
 |---------------|-------------------|---------------|
 | `openrouterApiKey` (secret) | `openrouter-api-key` | `OPENROUTER_API_KEY` |
 | `webAuthPassword` (secret) | `web-auth-password` | `WEB_AUTH_PASSWORD` |
-| (manual / Pulumi later) | `intuit-client-id` | `INTUIT_CLIENT_ID` |
-| (manual / Pulumi later) | `intuit-client-secret` | `INTUIT_CLIENT_SECRET` |
+| `intuitClientId` (secret) | `INTUIT_CLIENT_ID` | `INTUIT_CLIENT_ID` |
+| `intuitClientSecret` (secret) | `INTUIT_CLIENT_SECRET` | `INTUIT_CLIENT_SECRET` |
 | (auto) | `database-url` | `DATABASE_URL` |
 
 GitHub Actions (`.github/workflows/deploy-cloud-run.yml`) mounts these on each deploy. Set values with:
 
 ```bash
 cd infra && pulumi config set --secret webAuthPassword "..."
+pulumi config set --secret intuitClientId "..."
+pulumi config set --secret intuitClientSecret "..."
 pulumi up
 ```
 
 Twilio auth token (`twilio-auth-token`) may be created manually or added to Pulumi later.
 
-QuickBooks client ID/secret: create manually in Secret Manager — see [`PHASE_3.md`](PHASE_3.md).
-
 For GitHub Actions deploy auth, use repository secret **`GCP_SA_KEY`** (Pulumi output).
+
+**Why not put all Cloud Run env vars in Pulumi?** See [infra/README.md — Cloud Run env vars](../infra/README.md#cloud-run-env-vars--pulumi-vs-github-actions). Secrets belong in Pulumi; deploy-time wiring (image, secret mounts, `PUBLIC_BASE_URL`) stays in CI.
 
 ## Retrieve secrets from the command line
 

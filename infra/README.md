@@ -8,7 +8,7 @@ Provisions **long-lived** resources with [Pulumi](https://www.pulumi.com/) (Pyth
 |----------|-----------|
 | Enabled APIs | Run, Artifact Registry, Secret Manager, IAM, Cloud Build, **SQL Admin**, Compute |
 | Artifact Registry | `service-app` (Docker, region from `Pulumi.prod.yaml`, e.g. `us-west1`) |
-| Secret Manager | `openrouter-api-key`, `web-auth-password`, `database-url` |
+| Secret Manager | `openrouter-api-key`, `web-auth-password`, `database-url`, `INTUIT_CLIENT_ID`, `INTUIT_CLIENT_SECRET` (when configured) |
 | Cloud SQL | PostgreSQL 15 instance `service-app-db`, database `service_app` |
 | Runtime SA | `service-app-api@kgs-service-app.iam.gserviceaccount.com` |
 | GitHub deploy SA | `github-deploy@kgs-service-app.iam.gserviceaccount.com` |
@@ -47,6 +47,8 @@ pulumi stack init prod
 
 pulumi config set --secret openrouterApiKey "sk-or-v1-YOUR_KEY"
 pulumi config set --secret webAuthPassword "YOUR_STRONG_WEB_PASSWORD"
+pulumi config set --secret intuitClientId "YOUR_INTUIT_DEVELOPMENT_CLIENT_ID"
+pulumi config set --secret intuitClientSecret "YOUR_INTUIT_DEVELOPMENT_CLIENT_SECRET"
 # Optional — default is admin (must match deploy workflow WEB_AUTH_USERNAME)
 pulumi config set webAuthUsername admin
 # gcp:project and gcp:region are already in Pulumi.prod.yaml
@@ -97,6 +99,36 @@ pulumi up
 
 Username is plain config (`webAuthUsername`, default `admin`). After changing it, update `WEB_AUTH_USERNAME` in `.github/workflows/deploy-cloud-run.yml` to match, then redeploy.
 
+**QuickBooks OAuth (Development keys from Intuit):**
+
+```bash
+pulumi config set --secret intuitClientId "YOUR_DEVELOPMENT_CLIENT_ID"
+pulumi config set --secret intuitClientSecret "YOUR_DEVELOPMENT_CLIENT_SECRET"
+pulumi up   # creates secret versions in INTUIT_CLIENT_ID / INTUIT_CLIENT_SECRET
+```
+
+If you already created those secrets manually in GCP, **import** them once before `pulumi up`:
+
+```bash
+pulumi import gcp:secretmanager/secret:Secret intuit-client-id projects/kgs-service-app/secrets/INTUIT_CLIENT_ID
+pulumi import gcp:secretmanager/secret:Secret intuit-client-secret projects/kgs-service-app/secrets/INTUIT_CLIENT_SECRET
+```
+
+Then set config and run `pulumi up` to manage versions and IAM.
+
+## Cloud Run env vars — Pulumi vs GitHub Actions
+
+| Layer | Owns today | Examples |
+|-------|------------|----------|
+| **Pulumi** | Secret Manager resources, values, IAM, Cloud SQL, service accounts | `openrouter-api-key`, `INTUIT_CLIENT_ID` |
+| **GitHub Actions deploy** | Container image + which secrets/env vars Cloud Run mounts | `PUBLIC_BASE_URL`, secret mounts, `INTUIT_ENVIRONMENT=sandbox` |
+
+**Could Pulumi manage all Cloud Run environment variables?** Yes — `gcp.cloudrunv2.Service` can define env vars, secret refs, scaling, and the service shell. This repo **intentionally splits** responsibilities: Pulumi provisions long-lived infra; GitHub Actions deploys a new image on every push to `dev`/`main`.
+
+Moving everything to Pulumi would mean either (a) Pulumi also deploys the container image on each release, or (b) two tools updating the same Cloud Run service (easy to fight over config). The current split is deliberate: **Pulumi = secrets + platform**, **CI = app deploy wiring**.
+
+Non-secret deploy-time settings (`PUBLIC_BASE_URL`, `INTUIT_ENVIRONMENT`) stay in the workflow because they change with releases and are not sensitive.
+
 ## Useful outputs
 
 ```bash
@@ -107,6 +139,8 @@ pulumi stack output web_auth_username
 pulumi stack output web_auth_password_secret_id
 pulumi stack output cloud_sql_connection_name
 pulumi stack output database_url_secret_id
+pulumi stack output intuit_client_id_secret_id
+pulumi stack output intuit_client_secret_secret_id
 ```
 
 ## Troubleshooting

@@ -19,6 +19,8 @@ region = gcp_config.get("region") or "us-west1"
 openrouter_api_key = config.require_secret("openrouterApiKey")
 web_auth_username = config.get("webAuthUsername") or "admin"
 web_auth_password = config.get_secret("webAuthPassword")
+intuit_client_id = config.get_secret("intuitClientId")
+intuit_client_secret = config.get_secret("intuitClientSecret")
 database_name = config.get("databaseName") or "service_app"
 database_user = config.get("databaseUser") or "service_app"
 database_tier = config.get("databaseTier") or "db-f1-micro"
@@ -108,6 +110,57 @@ if web_auth_password is not None:
         "runtime-web-auth-secret-accessor",
         project=project,
         secret_id=web_auth_secret.secret_id,
+        role="roles/secretmanager.secretAccessor",
+        member=pulumi.Output.concat("serviceAccount:", runtime_sa.email),
+    )
+
+intuit_client_id_secret = None
+intuit_client_secret_secret = None
+if intuit_client_id is not None and intuit_client_secret is not None:
+    intuit_client_id_secret = gcp.secretmanager.Secret(
+        "intuit-client-id",
+        project=project,
+        secret_id="INTUIT_CLIENT_ID",
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=pulumi.ResourceOptions(depends_on=enabled_apis),
+    )
+
+    gcp.secretmanager.SecretVersion(
+        "intuit-client-id-v1",
+        secret=intuit_client_id_secret.id,
+        secret_data=intuit_client_id,
+    )
+
+    gcp.secretmanager.SecretIamMember(
+        "runtime-intuit-client-id-accessor",
+        project=project,
+        secret_id=intuit_client_id_secret.secret_id,
+        role="roles/secretmanager.secretAccessor",
+        member=pulumi.Output.concat("serviceAccount:", runtime_sa.email),
+    )
+
+    intuit_client_secret_secret = gcp.secretmanager.Secret(
+        "intuit-client-secret",
+        project=project,
+        secret_id="INTUIT_CLIENT_SECRET",
+        replication=gcp.secretmanager.SecretReplicationArgs(
+            auto=gcp.secretmanager.SecretReplicationAutoArgs(),
+        ),
+        opts=pulumi.ResourceOptions(depends_on=enabled_apis),
+    )
+
+    gcp.secretmanager.SecretVersion(
+        "intuit-client-secret-v1",
+        secret=intuit_client_secret_secret.id,
+        secret_data=intuit_client_secret,
+    )
+
+    gcp.secretmanager.SecretIamMember(
+        "runtime-intuit-client-secret-accessor",
+        project=project,
+        secret_id=intuit_client_secret_secret.secret_id,
         role="roles/secretmanager.secretAccessor",
         member=pulumi.Output.concat("serviceAccount:", runtime_sa.email),
     )
@@ -241,6 +294,12 @@ if web_auth_secret is not None:
     pulumi.export("web_auth_password_secret_id", web_auth_secret.secret_id)
 else:
     pulumi.export("web_auth_password_secret_id", "")
+if intuit_client_id_secret is not None:
+    pulumi.export("intuit_client_id_secret_id", intuit_client_id_secret.secret_id)
+    pulumi.export("intuit_client_secret_secret_id", intuit_client_secret_secret.secret_id)
+else:
+    pulumi.export("intuit_client_id_secret_id", "")
+    pulumi.export("intuit_client_secret_secret_id", "")
 pulumi.export("cloud_sql_instance_name", db_instance.name)
 pulumi.export("cloud_sql_connection_name", db_instance.connection_name)
 pulumi.export("database_name", database_name)
