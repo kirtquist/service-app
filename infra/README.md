@@ -114,7 +114,15 @@ pulumi import gcp:secretmanager/secret:Secret intuit-client-id projects/kgs-serv
 pulumi import gcp:secretmanager/secret:Secret intuit-client-secret projects/kgs-service-app/secrets/INTUIT_CLIENT_SECRET
 ```
 
-Then set config and run `pulumi up` to manage versions and IAM.
+Then set config and run `pulumi up` to manage versions and IAM. A healthy stack shows **`pulumi preview` → N unchanged** when fully synced.
+
+**Import warnings:** `replication` validation warnings during import are normal — choose **yes**. They usually clear once the secret is in Pulumi state.
+
+**Verify after setup:**
+
+```bash
+pulumi preview   # expect: N unchanged when synced
+```
 
 ## Cloud Run env vars — Pulumi vs GitHub Actions
 

@@ -15,7 +15,7 @@ GitHub Actions deploys on push to **`main`** or **`dev`** after tests pass.
 | **Artifact Registry** | Docker images (`us-west1-docker.pkg.dev/kgs-service-app/service-app/api`) |
 | **Cloud Run** | Hosts FastAPI, WhatsApp webhooks, web UI |
 | **Cloud SQL** | PostgreSQL 15 — invoice persistence ([`PHASE_2.md`](PHASE_2.md)) |
-| **Secret Manager** | `openrouter-api-key`, `web-auth-password`, `database-url`, `twilio-auth-token` |
+| **Secret Manager** | `openrouter-api-key`, `web-auth-password`, `database-url`, `twilio-auth-token`, `INTUIT_CLIENT_ID`, `INTUIT_CLIENT_SECRET` |
 | **GitHub Actions** | Build image, push, deploy (`.github/workflows/deploy-cloud-run.yml`) |
 
 Cloud Run injects **`PORT=8080`**. Local dev uses **8090** by default (`service-app-api`).
@@ -34,8 +34,12 @@ pip install -r requirements.txt
 pulumi stack select prod   # or: pulumi stack init prod
 pulumi config set --secret openrouterApiKey "sk-or-v1-YOUR_KEY"
 pulumi config set --secret webAuthPassword "YOUR_STRONG_WEB_PASSWORD"
+pulumi config set --secret intuitClientId "YOUR_INTUIT_DEVELOPMENT_CLIENT_ID"
+pulumi config set --secret intuitClientSecret "YOUR_INTUIT_DEVELOPMENT_CLIENT_SECRET"
 pulumi up
 ```
+
+QuickBooks setup details: [`PHASE_3.md`](PHASE_3.md).
 
 Add GitHub secret from Pulumi output:
 

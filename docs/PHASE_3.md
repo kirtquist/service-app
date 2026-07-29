@@ -26,17 +26,19 @@ OAuth connect and one-click invoice sync to QuickBooks Online (QBO).
 2. Copy **Development** Client ID and Client Secret (sandbox).
 3. Under **Redirect URIs**, add **exactly** (no trailing slash unless you register one):
 
-**Local:**
+**Local** (Intuit portal accepts `localhost`; use it consistently in the browser):
 
 ```
-http://127.0.0.1:8090/app/integrations/quickbooks/callback
+http://localhost:8090/app/integrations/quickbooks/callback
 ```
 
-**Cloud Run:**
+**Cloud Run** (must match `PUBLIC_BASE_URL` in `.github/workflows/deploy-cloud-run.yml`):
 
 ```
 https://service-app-api-fozkmmaapq-uw.a.run.app/app/integrations/quickbooks/callback
 ```
+
+Cloud Run also exposes an alternate hostname (`https://service-app-api-908743017998.us-west1.run.app`). Both reach the same service, but OAuth uses **`PUBLIC_BASE_URL`** (`fozkmmaapq-uw`) when building the redirect URI — register **that** callback in Intuit, not only the alias URL.
 
 4. Scopes: **`com.intuit.quickbooks.accounting`** (included in the connect URL).
 
@@ -44,11 +46,12 @@ https://service-app-api-fozkmmaapq-uw.a.run.app/app/integrations/quickbooks/call
 
 ## 2. Where to store credentials
 
-| Secret | Local (`.env`) | Production (GCP Secret Manager) | Database |
-|--------|----------------|----------------------------------|----------|
-| Client ID | `INTUIT_CLIENT_ID` | `intuit-client-id` → env | ❌ never |
-| Client Secret | `INTUIT_CLIENT_SECRET` | `intuit-client-secret` → env | ❌ never |
-| OAuth access/refresh tokens | — | — | ✅ `quickbooks_connections` |
+| Secret | Local (`.env`) | Production (GCP Secret Manager) | Cloud Run env | Database |
+|--------|----------------|----------------------------------|---------------|----------|
+| Client ID | `INTUIT_CLIENT_ID` | `INTUIT_CLIENT_ID` | `INTUIT_CLIENT_ID` | ❌ never |
+| Client Secret | `INTUIT_CLIENT_SECRET` | `INTUIT_CLIENT_SECRET` | `INTUIT_CLIENT_SECRET` | ❌ never |
+| Environment | `INTUIT_ENVIRONMENT` | — (set in deploy workflow) | `INTUIT_ENVIRONMENT=sandbox` | — |
+| OAuth access/refresh tokens | — | — | — | ✅ `quickbooks_connections` |
 
 **App credentials** (client ID/secret) follow the same pattern as OpenRouter — environment or Secret Manager, not committed to git.
 
@@ -60,10 +63,33 @@ https://service-app-api-fozkmmaapq-uw.a.run.app/app/integrations/quickbooks/call
 INTUIT_CLIENT_ID=your-development-client-id
 INTUIT_CLIENT_SECRET=your-development-client-secret
 INTUIT_ENVIRONMENT=sandbox
-INTUIT_REDIRECT_URI=http://127.0.0.1:8090/app/integrations/quickbooks/callback
+INTUIT_REDIRECT_URI=http://localhost:8090/app/integrations/quickbooks/callback
 ```
 
 If `INTUIT_REDIRECT_URI` is omitted, the app builds it from `PUBLIC_BASE_URL` + `/app/integrations/quickbooks/callback`.
+
+### Production architecture (secrets + deploy)
+
+```
+Intuit Developer (Development keys)
+        ↓
+Pulumi stack config (encrypted) ──pulumi up──► Secret Manager
+  intuitClientId                                  INTUIT_CLIENT_ID
+  intuitClientSecret                              INTUIT_CLIENT_SECRET
+        ↓
+GitHub Actions deploy ──mounts secrets──► Cloud Run env vars
+        ↓
+App OAuth + invoice sync
+```
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Pulumi** | Create secrets, push values, grant runtime SA `secretAccessor` — [`infra/README.md`](../infra/README.md) |
+| **Secret Manager** | Encrypted storage at rest (`INTUIT_CLIENT_ID`, `INTUIT_CLIENT_SECRET`) |
+| **`.github/workflows/deploy-cloud-run.yml`** | Mount secrets + set `INTUIT_ENVIRONMENT=sandbox`, `PUBLIC_BASE_URL` on every deploy |
+| **Cloud Run** | Injects secrets as env vars; app reads via [`settings.py`](../src/service_app/settings.py) |
+
+**Do not** commit client ID/secret to git. OAuth tokens after connect live in Postgres (`quickbooks_connections`), not Secret Manager.
 
 ### Cloud Run (Secret Manager + deploy)
 
@@ -71,14 +97,41 @@ If `INTUIT_REDIRECT_URI` is omitted, the app builds it from `PUBLIC_BASE_URL` + 
 
 ```bash
 cd infra
+pulumi stack select prod
 pulumi config set --secret intuitClientId "YOUR_DEVELOPMENT_CLIENT_ID"
 pulumi config set --secret intuitClientSecret "YOUR_DEVELOPMENT_CLIENT_SECRET"
 pulumi up
 ```
 
-Creates/updates `INTUIT_CLIENT_ID` and `INTUIT_CLIENT_SECRET` in Secret Manager and grants the runtime service account access. If you created those secrets manually first, import them once (see infra README).
+Creates/updates `INTUIT_CLIENT_ID` and `INTUIT_CLIENT_SECRET` in Secret Manager and grants the runtime service account access.
 
-**Deploy wiring:** `.github/workflows/deploy-cloud-run.yml` mounts both secrets and sets `INTUIT_ENVIRONMENT=sandbox` on each deploy — manual `gcloud run update` is no longer required after merge.
+**If secrets already exist in GCP** (manual setup), import once before `pulumi up`:
+
+```bash
+pulumi import gcp:secretmanager/secret:Secret intuit-client-id projects/kgs-service-app/secrets/INTUIT_CLIENT_ID
+pulumi import gcp:secretmanager/secret:Secret intuit-client-secret projects/kgs-service-app/secrets/INTUIT_CLIENT_SECRET
+```
+
+Import may show **replication** warnings — choose **yes**; they are normal. After import + config + `pulumi up`, `pulumi preview` should show **unchanged** when synced.
+
+**Deploy wiring** (already in repo): `.github/workflows/deploy-cloud-run.yml` mounts:
+
+```
+INTUIT_CLIENT_ID=INTUIT_CLIENT_ID:latest
+INTUIT_CLIENT_SECRET=INTUIT_CLIENT_SECRET:latest
+```
+
+…and sets `INTUIT_ENVIRONMENT=sandbox`. Without this, a code deploy would **drop** manually added secret mounts.
+
+**Rotate keys:**
+
+```bash
+pulumi config set --secret intuitClientId "NEW_ID"
+pulumi config set --secret intuitClientSecret "NEW_SECRET"
+pulumi up
+```
+
+New Cloud Run instances pick up `:latest` automatically; no manual `gcloud run update` needed.
 
 **Manual fallback** (if not using Pulumi):
 
@@ -89,17 +142,26 @@ echo -n "YOUR_CLIENT_SECRET" | gcloud secrets versions add INTUIT_CLIENT_SECRET 
 
 ---
 
-## 3. Connect flow (test)
+## 3. Connect flow
+
+### Local
 
 ```bash
 pip install -e ".[dev]"
 service-app-api
 ```
 
-1. Open `http://127.0.0.1:8090/app/integrations/quickbooks` (sign in with web auth).
-2. Click **Connect QuickBooks**.
-3. Sign in to Intuit and authorize the sandbox company.
-4. You should land back on the settings page with **Connected** and the company name.
+1. Open **`http://localhost:8090/app/integrations/quickbooks`** (sign in with web auth if `WEB_AUTH_PASSWORD` is set).
+2. Confirm the **Redirect URI** shown on the page matches what you registered in Intuit.
+3. Click **Connect QuickBooks** → Intuit sandbox login → authorize.
+4. Land back on settings with **Connected** and the company name.
+
+### Cloud Run
+
+1. Use the **canonical URL** for the whole flow: **`https://service-app-api-fozkmmaapq-uw.a.run.app`**
+2. Sign in with HTTP Basic auth: username **`admin`**, password from Pulumi / Secret Manager `web-auth-password` (not your local `.env`).
+3. Open `/app/integrations/quickbooks` → **Connect QuickBooks**.
+4. After Intuit redirects back, the browser may prompt for **Basic auth again** on the `fozkmmaapq-uw` hostname (different from the `908743017998` alias — credentials are not shared between hostnames).
 
 Disconnect clears tokens from the database only (Intuit revoke can be added later).
 
@@ -138,15 +200,29 @@ Invoice sync fields on `invoices`: `qbo_external_id`, `qbo_sync_status`, `qbo_sy
 - Uses the first Service item in QBO (or any item if none); descriptions carry part/labor text.
 - `DocNumber` = `INV-0001` style from local invoice id.
 
+**Line items (MVP limitation):** QBO receives generic Service item rows; part names appear in **Description**, not as mapped inventory SKUs. Catalog mapping is a future phase.
+
 ---
 
-## 6. Troubleshooting
+## 6. Database notes
+
+- Invoice sync columns: `qbo_external_id`, `qbo_sync_status`, `qbo_synced_at`.
+- Existing SQLite/Postgres databases created before Phase 3 get columns added automatically on startup ([`bootstrap.py`](../src/service_app/db/bootstrap.py) `apply_schema_patches`).
+
+---
+
+## 7. Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
-| Redirect URI mismatch | URI in Intuit portal must match `INTUIT_REDIRECT_URI` or `{PUBLIC_BASE_URL}/app/integrations/quickbooks/callback` exactly |
+| Redirect URI mismatch | URI in Intuit portal must match the **Redirect URI** on the QuickBooks settings page exactly (check `PUBLIC_BASE_URL` / `INTUIT_REDIRECT_URI`) |
+| Registered alias URL only | OAuth uses `fozkmmaapq-uw` hostname — register that callback, not only `908743017998.us-west1.run.app` |
 | Invalid OAuth state | Retry connect; state expires after 10 minutes |
-| Connect works locally but not Cloud Run | Add Cloud Run callback URL to Intuit app; mount secrets on Cloud Run |
+| `invalid_client` on connect | **Development** Client ID + Secret must match; Cloud Run values come from Secret Manager (via Pulumi), not local `.env`. Use `echo -n` when adding secret versions |
+| HTTP Basic auth clears password | Wrong password for Cloud Run (`web-auth-password` secret); or signing in on alias URL then OAuth lands on `fozkmmaapq-uw` |
+| Connect works locally but not Cloud Run | Register Cloud Run callback in Intuit; verify secrets mounted (deploy workflow); check `INTUIT_ENVIRONMENT=sandbox` |
 | 401 from QBO API | Token refresh failed — disconnect and reconnect |
+| 500 on `/app/invoices` (local) | Stale DB missing QBO columns — restart app (schema patch runs on startup) |
 | No items in QBO | Create at least one Service item in the sandbox company |
 | Invoice has no lines | Add labor hours or parts before sending |
+| Deploy dropped QBO secrets | Ensure `INTUIT_*` lines are in `deploy-cloud-run.yml` |

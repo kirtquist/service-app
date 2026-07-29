@@ -2,7 +2,7 @@
 
 MVP scaffolding for a **field-service** style app aimed first at trades such as plumbing. The bundled **price catalog mock data skews electrician** until you swap SKUs toward pipes, fittings, and fixtures.
 
-**Product direction:** web-based invoice review and approval at home, with future QuickBooks sync — see [`docs/VISION.md`](docs/VISION.md). The CLI is for development and testing only.
+**Product direction:** web-based invoice review and approval at home, with QuickBooks Online sync — see [`docs/VISION.md`](docs/VISION.md). The CLI is for development and testing only.
 
 ## Features (current)
 
@@ -13,6 +13,7 @@ MVP scaffolding for a **field-service** style app aimed first at trades such as 
 - **Web approval UI**: Review and approve invoices at `/app/invoices` — [`docs/PHASE_1B.md`](docs/PHASE_1B.md).
 - **Invoice persistence**: SQLAlchemy + Cloud SQL Postgres (prod) or SQLite (local).
 - **Export**: CSV (QuickBooks) and PDF for approved invoices — [`docs/PHASE_2.md`](docs/PHASE_2.md).
+- **QuickBooks Online**: OAuth connect + push approved invoices to QBO — [`docs/PHASE_3.md`](docs/PHASE_3.md).
 - **Secrets hook**: [`EnvSecretsProvider`](src/service_app/secrets.py) reads from environment; swap for Vault/KMS in production.
 
 ## Setup
@@ -90,7 +91,7 @@ PYTHONPATH=src python app.py   # works without install; prefer pip install -e .
 - [`docs/WHATSAPP_SETUP.md`](docs/WHATSAPP_SETUP.md) — Twilio sandbox and Meta Cloud API webhook setup.
 - [`docs/PHASE_1B.md`](docs/PHASE_1B.md) — web invoice list, edit, and approve.
 - [`docs/PHASE_2.md`](docs/PHASE_2.md) — Cloud SQL Postgres and CSV/PDF export.
-- [`docs/PHASE_3.md`](docs/PHASE_3.md) — QuickBooks Online OAuth connect and credential storage.
+- [`docs/PHASE_3.md`](docs/PHASE_3.md) — QuickBooks Online OAuth, invoice sync, Pulumi + Cloud Run credentials.
 - [`docs/AI_ASSISTANT.md`](docs/AI_ASSISTANT.md) — future minimal AI assistant layer (no graph DB).
 - [`docs/SME_DEMO_PROMPTS.md`](docs/SME_DEMO_PROMPTS.md) — plumber-style test messages for demos.
 - [`infra/README.md`](infra/README.md) — Pulumi stack for GCP foundation (recommended one-time setup).

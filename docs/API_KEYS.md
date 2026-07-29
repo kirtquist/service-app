@@ -27,10 +27,24 @@ Do **not** commit `.env`. Production secrets live in **GCP Secret Manager**, pro
 | `intuitClientSecret` (secret) | `INTUIT_CLIENT_SECRET` | `INTUIT_CLIENT_SECRET` |
 | (auto) | `database-url` | `DATABASE_URL` |
 
-GitHub Actions (`.github/workflows/deploy-cloud-run.yml`) mounts these on each deploy. Set values with:
+GitHub Actions (`.github/workflows/deploy-cloud-run.yml`) mounts these on each deploy:
+
+| Cloud Run env | Source |
+|---------------|--------|
+| `OPENROUTER_API_KEY` | `openrouter-api-key:latest` |
+| `TWILIO_AUTH_TOKEN` | `twilio-auth-token:latest` |
+| `WEB_AUTH_PASSWORD` | `web-auth-password:latest` |
+| `DATABASE_URL` | `database-url:latest` |
+| `INTUIT_CLIENT_ID` | `INTUIT_CLIENT_ID:latest` |
+| `INTUIT_CLIENT_SECRET` | `INTUIT_CLIENT_SECRET:latest` |
+| `PUBLIC_BASE_URL` | plain env (workflow) |
+| `INTUIT_ENVIRONMENT` | plain env (`sandbox`) |
+
+Set secret **values** with Pulumi:
 
 ```bash
-cd infra && pulumi config set --secret webAuthPassword "..."
+cd infra && pulumi stack select prod
+pulumi config set --secret webAuthPassword "..."
 pulumi config set --secret intuitClientId "..."
 pulumi config set --secret intuitClientSecret "..."
 pulumi up
@@ -61,6 +75,16 @@ gcloud secrets versions access latest \
   --secret=openrouter-api-key \
   --project=kgs-service-app
 ```
+
+**QuickBooks Development Client ID** (compare with Intuit portal — do not share in chat):
+
+```bash
+gcloud secrets versions access latest \
+  --secret=INTUIT_CLIENT_ID \
+  --project=kgs-service-app
+```
+
+Prefer updating via `pulumi config set --secret intuitClientId "..."` + `pulumi up` rather than raw `gcloud` when Pulumi manages the secret.
 
 Do not paste these into chat logs or commit them. Prefer `pulumi config get` for non-secret config (e.g. `webAuthUsername`).
 

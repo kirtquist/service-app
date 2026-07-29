@@ -113,8 +113,8 @@ DATABASE_URL=postgresql+psycopg2://user:pass@localhost:5432/service_app
 
 ---
 
-## Next (Phase 3)
+## Phase 3 (QuickBooks Online)
 
-QuickBooks Online API — OAuth, push approved invoices, sync metadata.
+Implemented — OAuth connect, **Send to QuickBooks**, sync metadata. See [`PHASE_3.md`](PHASE_3.md).
 
 See [`VISION.md`](VISION.md).

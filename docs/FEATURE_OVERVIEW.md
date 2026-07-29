@@ -8,7 +8,7 @@ Technical snapshot of what exists in the repo today and what comes next. Product
 - **Near-term workflows**:
   - Capture technician narration → parse → price → **approve in browser** (Phase 1b ✅)
   - **Export** approved invoices as CSV (QuickBooks) or PDF (Phase 2 ✅)
-  - QuickBooks Online OAuth connect (Phase 3 — in progress)
+  - QuickBooks Online OAuth connect + invoice sync (Phase 3 ✅) — [`PHASE_3.md`](PHASE_3.md)
 
 ## What works today
 
@@ -19,6 +19,7 @@ Technical snapshot of what exists in the repo today and what comes next. Product
 | WhatsApp demo | [`WHATSAPP_SETUP.md`](WHATSAPP_SETUP.md) |
 | Web invoice approval | `/app/invoices` — [`PHASE_1B.md`](PHASE_1B.md) |
 | CSV / PDF export | Approved invoice detail → Download buttons — [`PHASE_2.md`](PHASE_2.md) |
+| QBO connect + Send to QuickBooks | `/app/integrations/quickbooks` + approved invoice detail — [`PHASE_3.md`](PHASE_3.md) |
 
 ## Technical building blocks
 
@@ -29,8 +30,8 @@ Technical snapshot of what exists in the repo today and what comes next. Product
 | Database | SQLite local; **Cloud SQL Postgres** prod (Pulumi) | Alembic migrations |
 | API / hosting | FastAPI on Cloud Run | — |
 | WhatsApp | Twilio + Meta webhooks; saves invoices | Voice notes |
-| Web UI | List, edit, approve, export | QBO connect ✅; invoice sync 🔜 |
-| Bookkeeping | CSV + PDF export | QuickBooks Online API |
+| Web UI | List, edit, approve, export, QBO connect + sync | Catalog item mapping (Phase 4+) |
+| Bookkeeping | CSV + PDF export; QBO invoice push (MVP) | QBO catalog SKU mapping |
 | AI assistant | — | Read-only chat tools (Phase 4+) — [`AI_ASSISTANT.md`](AI_ASSISTANT.md) |
 
 ## Database
@@ -42,8 +43,8 @@ See [`PHASE_2.md`](PHASE_2.md) for architecture and deploy steps.
 
 ## Next steps
 
-**Phase 3 (in progress):** QuickBooks Online OAuth connect — [`PHASE_3.md`](PHASE_3.md). Invoice push to QBO is next.
+**Phase 4 (planned):** QBO catalog mapping (Parts/Labor SKUs), richer line items — see [`VISION.md`](VISION.md).
 
-**SME validation (pre-Phase 3):** [`SME_INTERVIEW.md`](SME_INTERVIEW.md) — local test checklist: [`PRE_PHASE3_TEST_PLAN.md`](PRE_PHASE3_TEST_PLAN.md).
+**SME validation:** [`SME_INTERVIEW.md`](SME_INTERVIEW.md) — local test checklist: [`PRE_PHASE3_TEST_PLAN.md`](PRE_PHASE3_TEST_PLAN.md).
 
 **Future (Phase 4+):** Minimal AI assistant on existing Postgres models — [`AI_ASSISTANT.md`](AI_ASSISTANT.md) (graph DB not planned).

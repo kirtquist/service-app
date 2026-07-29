@@ -230,10 +230,13 @@ See [`PHASE_1B.md`](PHASE_1B.md).
 
 See [`PHASE_2.md`](PHASE_2.md).
 
-### Phase 3 — QuickBooks Online
+### Phase 3 — QuickBooks Online ✅
 
-- Connect company (OAuth)
-- Push approved invoices; track sync state
+- Connect company (OAuth) — local + Cloud Run
+- Push approved invoices; track sync state (`qbo_external_id`, etc.)
+- Pulumi + Secret Manager + deploy workflow for Intuit credentials
+
+See [`PHASE_3.md`](PHASE_3.md).
 
 ### Phase 4 — Field capture & polish
 
