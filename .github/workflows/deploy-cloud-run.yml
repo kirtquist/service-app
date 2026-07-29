@@ -83,11 +83,13 @@ jobs:
             TWILIO_AUTH_TOKEN=twilio-auth-token:latest
             WEB_AUTH_PASSWORD=web-auth-password:latest
             DATABASE_URL=database-url:latest
+            INTUIT_CLIENT_ID=INTUIT_CLIENT_ID:latest
+            INTUIT_CLIENT_SECRET=INTUIT_CLIENT_SECRET:latest
           flags: >-
             --allow-unauthenticated
             --service-account=${{ env.RUNTIME_SA }}
             --add-cloudsql-instances=${{ env.CLOUD_SQL_INSTANCE }}
-            --set-env-vars=PUBLIC_BASE_URL=https://service-app-api-fozkmmaapq-uw.a.run.app,TWILIO_VALIDATE_SIGNATURES=true,OPENROUTER_HTTP_REFERER=https://github.com/kirtquist/service-app,OPENROUTER_X_TITLE='Service App MVP',WEB_AUTH_USERNAME=admin
+            --set-env-vars=PUBLIC_BASE_URL=https://service-app-api-fozkmmaapq-uw.a.run.app,TWILIO_VALIDATE_SIGNATURES=true,OPENROUTER_HTTP_REFERER=https://github.com/kirtquist/service-app,OPENROUTER_X_TITLE='Service App MVP',WEB_AUTH_USERNAME=admin,INTUIT_ENVIRONMENT=sandbox
             --memory=512Mi
             --cpu=1
             --min-instances=0

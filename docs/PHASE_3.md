@@ -65,39 +65,27 @@ INTUIT_REDIRECT_URI=http://127.0.0.1:8090/app/integrations/quickbooks/callback
 
 If `INTUIT_REDIRECT_URI` is omitted, the app builds it from `PUBLIC_BASE_URL` + `/app/integrations/quickbooks/callback`.
 
-### Cloud Run (Secret Manager)
+### Cloud Run (Secret Manager + deploy)
 
-Create secrets once:
-
-```bash
-echo -n "YOUR_CLIENT_ID" | gcloud secrets create intuit-client-id \
-  --data-file=- --project=kgs-service-app --replication-policy=automatic
-
-echo -n "YOUR_CLIENT_SECRET" | gcloud secrets create intuit-client-secret \
-  --data-file=- --project=kgs-service-app --replication-policy=automatic
-
-gcloud secrets add-iam-policy-binding intuit-client-id \
-  --member="serviceAccount:service-app-api@kgs-service-app.iam.gserviceaccount.com" \
-  --role="roles/secretmanager.secretAccessor" \
-  --project=kgs-service-app
-
-gcloud secrets add-iam-policy-binding intuit-client-secret \
-  --member="serviceAccount:service-app-api@kgs-service-app.iam.gserviceaccount.com" \
-  --role="roles/secretmanager.secretAccessor" \
-  --project=kgs-service-app
-```
-
-Mount on Cloud Run:
+**Preferred — Pulumi** ([`infra/README.md`](../infra/README.md)):
 
 ```bash
-gcloud run services update service-app-api \
-  --region us-west1 \
-  --project kgs-service-app \
-  --set-secrets="INTUIT_CLIENT_ID=intuit-client-id:latest,INTUIT_CLIENT_SECRET=intuit-client-secret:latest" \
-  --update-env-vars="INTUIT_ENVIRONMENT=sandbox,PUBLIC_BASE_URL=https://service-app-api-fozkmmaapq-uw.a.run.app"
+cd infra
+pulumi config set --secret intuitClientId "YOUR_DEVELOPMENT_CLIENT_ID"
+pulumi config set --secret intuitClientSecret "YOUR_DEVELOPMENT_CLIENT_SECRET"
+pulumi up
 ```
 
-Also add both secrets to `.github/workflows/deploy-cloud-run.yml` when you want deploys to keep them mounted.
+Creates/updates `INTUIT_CLIENT_ID` and `INTUIT_CLIENT_SECRET` in Secret Manager and grants the runtime service account access. If you created those secrets manually first, import them once (see infra README).
+
+**Deploy wiring:** `.github/workflows/deploy-cloud-run.yml` mounts both secrets and sets `INTUIT_ENVIRONMENT=sandbox` on each deploy — manual `gcloud run update` is no longer required after merge.
+
+**Manual fallback** (if not using Pulumi):
+
+```bash
+echo -n "YOUR_CLIENT_ID" | gcloud secrets versions add INTUIT_CLIENT_ID --data-file=- --project=kgs-service-app
+echo -n "YOUR_CLIENT_SECRET" | gcloud secrets versions add INTUIT_CLIENT_SECRET --data-file=- --project=kgs-service-app
+```
 
 ---
 
